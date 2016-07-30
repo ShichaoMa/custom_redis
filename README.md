@@ -1,0 +1,2 @@
+# custom_redis
+python实现简单redis，实现redis基本功能以及可插拔数据结构
