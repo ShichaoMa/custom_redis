@@ -71,7 +71,6 @@ class Redis(object):
                 self.redis_conn.close()
             except:
                 pass
-        print "set up connections..."
         self.redis_conn = socket()
         self.redis_conn.connect((self.host, self.port))
         self.redis_conn.settimeout(self.timeout)
