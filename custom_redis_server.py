@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+"""redis_server"""
 import socket
 import fnmatch
 import select

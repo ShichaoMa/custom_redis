@@ -7,3 +7,11 @@ class MethodNotExist(Exception):
 
 class ClientClosed(Exception):
     pass
+
+
+class RedisError(Exception):
+    pass
+
+
+class RedisArgumentError(Exception):
+    pass
