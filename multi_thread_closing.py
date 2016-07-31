@@ -17,7 +17,7 @@ class MultiThreadClosing(object):
         self.open()
         if not logger:
             self.logger =logging.getLogger("root")
-            self.logger.setLevel(20)
+            self.logger.setLevel(10)
             self.logger.addHandler(logging.StreamHandler(sys.stdout))
         else:
             self.logger = logger

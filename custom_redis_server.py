@@ -3,29 +3,23 @@ import socket
 import fnmatch
 import select
 import traceback
-import pickle
 import errno
-import json
 import os
 import time
 from argparse import ArgumentParser
 from threading import Thread
-from logger import Logger
 from multi_thread_closing import MultiThreadClosing
 from errors import MethodNotExist, ClientClosed
 from utils import stream_wrapper
 from default_data_types import *
 
 
-
-
-class CustomRedis(Logger, MultiThreadClosing):
+class CustomRedis(MultiThreadClosing):
     name = "redis_server"
     default = {"str": StrStore, "hash": HashStore, "set": SetStore, "zset": ZsetStore}
 
-    def __init__(self, settings, host, port):
-        Logger.__init__(self, settings)
-        MultiThreadClosing.__init__(self, self.logger)
+    def __init__(self, host, port):
+        MultiThreadClosing.__init__(self)
         self.host = host
         self.port = port
         self.data_type = {}
@@ -198,7 +192,6 @@ class CustomRedis(Logger, MultiThreadClosing):
     @classmethod
     def parse_args(cls):
         parser = ArgumentParser()
-        parser.add_argument("-s", "--settings", dest="settings", help="settings", default="settings.py")
         parser.add_argument("--host", dest="host", help="host", default="127.0.0.1")
         parser.add_argument("-p", "--port", type=int, dest="port", help="port", default=7777)
         return cls(**vars(parser.parse_args()))
