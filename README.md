@@ -1,14 +1,10 @@
 # custom_redis<br/>
 ├── custom_redis_server.py<br/>
 ├── default_data_types.py<br/>
-├── default_settings.py<br/>
 ├── errors.py<br/>
-├── logger.py<br/>
 ├── multi_thread_closing.py<br/>
 ├── README.md<br/>
 ├── redis.py<br/>
-├── redis_data.db<br/>
-├── settings_wrapper.py<br/>
 ├── sorted_dict.py<br/>
 ├── utils.py<br/>
 └── zset.py<br/>
@@ -42,7 +38,9 @@ HELLOWORD
         F:\projects\custom_redis>python redis.py -c zpop a
         2
     ```
+    
     demo2
+    
     ```
         >>> from redis import Redis
         >>> r = Redis("127.0.0.1", 6379)
@@ -65,6 +63,7 @@ HELLOWORD
     ```
 
     demo3
+    
     ```
         # 服务端实现
         # 数据类型个性化定制
@@ -76,6 +75,7 @@ HELLOWORD
     ```
 
     demo4
+    
     ```
         #  客户端实现
         在CMD_DICT中配置指令
