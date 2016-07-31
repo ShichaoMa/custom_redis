@@ -78,7 +78,7 @@ HELLOWORD
     
     ```
         #  客户端实现
-        在CMD_DICT中配置指令
+        在functions.CMD_DICT中配置指令
         "hgetall":  # 指令名
         {
         "args": ["name"], # 指令所需参数
