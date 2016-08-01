@@ -200,5 +200,5 @@ class CustomRedis(MultiThreadClosing):
 
 if __name__ == "__main__":
     cr = CustomRedis.parse_args()
-    #cr.install()
+    cr.set_logger()
     cr.start()

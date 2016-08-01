@@ -10,17 +10,20 @@ class MultiThreadClosing(object):
 
     alive = True
     name = "root"
+    threads = []
+    int_signal_count = 1
 
-    def __init__(self, logger=None):
-        self.threads = []
-        self.int_signal_count = 1
+    def __init__(self):
         self.open()
+
+    def set_logger(self, logger=None):
         if not logger:
-            self.logger =logging.getLogger("root")
+            self.logger = logging.getLogger(self.name)
             self.logger.setLevel(10)
             self.logger.addHandler(logging.StreamHandler(sys.stdout))
         else:
             self.logger = logger
+            self.name = logger.name
 
     def stop(self, *args):
         if self.int_signal_count > 1:
