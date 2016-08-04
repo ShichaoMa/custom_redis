@@ -1,14 +1,15 @@
 # -*- coding:utf-8 -*-
 """redis_client"""
-from socket import socket
-import json
 import argparse
 import errno
+import json
 import time
-from utils import SafeList, func_name_wrapper, handle_safely, default_recv, default_send
-from errors import RedisArgumentError, RedisError
+from socket import socket
+
 from functions import CMD_DICT
 
+from errors import RedisArgumentError, RedisError
+from utils import SafeList, func_name_wrapper, handle_safely, default_recv, default_send
 
 FORMAT = "%s#-*-#%s#-*-#1"
 
