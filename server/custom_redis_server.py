@@ -17,7 +17,7 @@ from default_data_types import *
 
 class CustomRedis(MultiThreadClosing):
     name = "redis_server"
-    default = {"str": StrStore, "hash": HashStore, "set": SetStore, "zset": ZsetStore}
+    default = {"str": StrStore, "hash": HashStore, "set": SetStore, "zset": ZsetStore, "list": ListStore}
 
     def __init__(self, host, port):
         MultiThreadClosing.__init__(self)

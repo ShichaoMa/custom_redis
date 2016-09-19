@@ -118,6 +118,6 @@ if __name__ == "__main__":
         result = getattr(r, args.cmd)(*(keys + mapping))
     else:
         result = getattr(r, args.cmd)(*(keys + args.args))
-    if result:
+    if result != None:
         print result
 

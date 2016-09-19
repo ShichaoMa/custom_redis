@@ -58,4 +58,18 @@ CMD_DICT = {
         "recv": lambda x:int(x),
         "result": 0
     },
+    "lpop": {
+        "args": ["name"],
+        "send": lambda *args: "%s<->" % args[0],
+    },
+    "rpush": {
+        "args": ["name", "value"],
+        "send": lambda *args: "%s<->%s" % (args[0], args[1]),
+    },
+    "llen": {
+        "args": ["name"],
+        "send": lambda *args: "%s<->" % args[0],
+        "recv": lambda x: int(x),
+        "result": 0
+    },
 }
