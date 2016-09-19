@@ -33,7 +33,6 @@ class Redis(object):
         self.redis_conn.connect((self.host, self.port))
         self.redis_conn.settimeout(self.timeout)
 
-
     def __getattr__(self, name):
         return func_name_wrapper(name)(self._execute_cmd)
 
@@ -59,21 +58,25 @@ class Redis(object):
 
     def _parse_result(self, buf, properties={}):
         count = 0
-        result = None
-        while True:
-            try:
-                self.redis_conn.send(buf)
-                result = self.redis_conn.recv(102400)
-            except Exception as e:
-                if e.args[0] == errno.EPIPE and count < 3:
-                    self.setup()
-                    count += 1
-                    time.sleep(1)
-                else:
-                    raise
+        result = ""
+        try:
+            self.redis_conn.send(buf)
+        except Exception as e:
+            if e.args[0] == errno.EPIPE and count < 3:
+                self.setup()
+                count += 1
+                time.sleep(1)
             else:
+                raise
+        while True:
+            recv = self.redis_conn.recv(1024000)
+            if recv:
+                result += recv
+            if not recv or recv.endswith("\r\n\r\n"):
                 break
-        code, info, data = result.split("#-*-#")
+        a = result.split("#-*-#")
+        code, info, data = a
+        data = data[:-4]
         if code == "200":
             return handle_safely(properties.get("recv", default_recv))(data)
         elif code == "502":
@@ -106,6 +109,7 @@ def parse_args():
     parser.add_argument("args", nargs="*", default=[])
     parser.add_argument("-k", "--key", dest="key")
     parser.add_argument("-j", "--json", dest="json", action="store_true")
+    parser.add_argument("--keep-alive", dest="keep_alive", action="store_true")
     return parser.parse_args()
 
 
@@ -113,6 +117,8 @@ if __name__ == "__main__":
     r = Redis()
     args = parse_args()
     keys = [args.key] if args.key else []
+    if not args.keep_alive:
+        FORMAT.replace("1", "0")
     if args.json:
         mapping = [json.loads(args.args[0])]
         result = getattr(r, args.cmd)(*(keys + mapping))

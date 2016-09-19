@@ -33,7 +33,7 @@ def stream_wrapper(func):
                 if stream in w_lst:
                     del w_lst[stream]
                 # 如果每个socket属性元组中keep-alive 不为空，则不关闭stream
-                if (stream in r_lst and (len(r_lst[stream]) != 3 or not r_lst[stream][2])) or is_closed:
+                if (stream in r_lst and (len(r_lst[stream]) != 3 or not int(r_lst[stream][2]))) or is_closed:
                     del r_lst[stream]
                     try:
                         stream.close()

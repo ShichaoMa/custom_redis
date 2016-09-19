@@ -22,7 +22,7 @@ class DataStore(object):
     def format_response(self, code, info, data):
         if data is None:
             data = ""
-        return "%s#-*-#%s#-*-#%s" % (code, info, data)
+        return "%s#-*-#%s#-*-#%s\r\n\r\n" % (code, info, data)
 
     def persist(self, stream):
         stream.write(pickle.dumps(self.data))
