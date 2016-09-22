@@ -63,7 +63,7 @@ cr.install(datatype=datatype())
 cr.set_logger()
 cr.start()
 ```
-demo4
+#demo4
 ```python
 # 客户端实现
 # 在functions.CMD_DICT中配置指令
