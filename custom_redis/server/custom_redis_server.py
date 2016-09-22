@@ -1,15 +1,18 @@
 # -*- coding:utf-8 -*-
 """redis_server"""
-import socket
-import fnmatch
-import select
-import traceback
-import errno
 import os
 import time
+import errno
+import socket
+import select
+import fnmatch
+import traceback
+
 from argparse import ArgumentParser
 from threading import Thread
+
 from multi_thread_closing import MultiThreadClosing
+
 from errors import MethodNotExist, ClientClosed
 from utils import stream_wrapper
 from default_data_types import *
@@ -198,7 +201,11 @@ class CustomRedis(MultiThreadClosing):
         return cls(**vars(parser.parse_args()))
 
 
-if __name__ == "__main__":
+def start_server():
     cr = CustomRedis.parse_args()
     cr.set_logger()
     cr.start()
+
+
+if __name__ == "__main__":
+    start_server()

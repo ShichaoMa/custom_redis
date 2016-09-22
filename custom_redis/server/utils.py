@@ -1,7 +1,9 @@
 # -*- coding:utf-8 -*-
+import traceback
+
 from Queue import Empty
 from functools import wraps
-import traceback
+
 from errors import ClientClosed
 
 

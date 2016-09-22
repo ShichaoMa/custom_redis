@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
-from bisect import bisect_left,bisect_right,insort
 from Queue import Empty
+from bisect import bisect_left,bisect_right,insort
 
 #定义节点
 class SNode:
@@ -139,21 +139,3 @@ class SortedSet:
 
     def __len__(self):
         return self.zcard
-
-# import contextlib
-# import time
-#
-# timeobj = {}
-# class timetrace:
-#     @contextlib.contextmanager
-#     def mark(self,name):
-#         t = time.time()
-#         yield
-#         timeobj[name] = time.time() - t
-#
-#     def stat(self):
-#         print '---------benchmark(100000 requests)---------'
-#         for k,v in timeobj.iteritems():
-#             print '{} {}s'.format(k,v)
-#
-# tt = timetrace()

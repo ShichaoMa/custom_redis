@@ -10,21 +10,26 @@ python实现简单redis，实现redis基本功能以及可插拔数据结构<br>
 # INSTALL
 ##windows && ubuntu
 ```bash
-git clone https://github.com/ShichaoMa/custom_redis.git
+    git clone https://github.com/ShichaoMa/custom_redis.git
+    sudo python setup.py install
+
+    or
+
+    sudo pip install custom-redis
 ```
 # START:
 ```bash
-python custom_redis_server.py --host "127.0.0.1" --port 6379
+    custom-redis-server --host "127.0.0.1" --port 6379
 ```
 # HELLOWORD
 ##demo1
 ```bash
-F:\projects\custom_redis>python redis.py -c keys
-[u'a']
-F:\projects\custom_redis>python redis.py -c zcard a
-1
-F:\projects\custom_redis>python redis.py -c zpop a
-2
+    custom-redis-client -c keys
+    [u'a']
+    custom-redis-client -c zcard a
+    1
+    custom-redis-client -c zpop a
+    2
 ```
 ##demo2
 ```bash
@@ -55,6 +60,7 @@ F:\projects\custom_redis>python redis.py -c zpop a
 # 安装数据类型
 cr = CustomRedis.parse_args()
 cr.install(datatype=datatype())
+cr.set_logger()
 cr.start()
 ```
 demo4

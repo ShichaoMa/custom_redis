@@ -1,13 +1,13 @@
 # -*- coding:utf-8 -*-
 """redis_client"""
-import argparse
-import errno
 import json
 import time
+import errno
+import argparse
+
 from socket import socket
 
 from functions import CMD_DICT
-
 from errors import RedisArgumentError, RedisError
 from utils import SafeList, func_name_wrapper, handle_safely, default_recv, default_send
 
@@ -102,6 +102,8 @@ class Redis(object):
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--host", dest="host", default="127.0.0.1")
+    parser.add_argument("-p", "--port", dest="port", type=int, default=6379)
     parser.add_argument("-c", "--cmd", dest="cmd", required=True)
     parser.add_argument("args", nargs="*", default=[])
     parser.add_argument("-k", "--key", dest="key")
@@ -109,9 +111,9 @@ def parse_args():
     return parser.parse_args()
 
 
-if __name__ == "__main__":
-    r = Redis()
+def start_client():
     args = parse_args()
+    r = Redis(args.host, args.port)
     keys = [args.key] if args.key else []
     if args.json:
         mapping = [json.loads(args.args[0])]
@@ -120,4 +122,8 @@ if __name__ == "__main__":
         result = getattr(r, args.cmd)(*(keys + args.args))
     if result:
         print result
+
+
+if __name__ == "__main__":
+    start_client()
 
