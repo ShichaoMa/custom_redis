@@ -4,7 +4,7 @@ import random
 import json
 
 from zset import SortedSet
-from Queue import Queue
+from Queue import Queue, Empty
 from utils import cmd_wrapper
 
 
@@ -23,7 +23,7 @@ class DataStore(object):
     def format_response(self, code, info, data):
         if data is None:
             data = ""
-        return "%s#-*-#%s#-*-#%s" % (code, info, data)
+        return "%s#-*-#%s#-*-#%s\r\n\r\n" % (code, info, data)
 
     def persist(self, stream):
         stream.write(pickle.dumps(self.data))
@@ -65,6 +65,25 @@ class QueueStore(DataStore):
     @cmd_wrapper
     def push(self, k, v, instance):
         self.data.put(v)
+
+
+class ListStore(DataStore):
+    data_type = list
+
+    @cmd_wrapper
+    def lpop(self, k, v, instance):
+        if self.data:
+            return self.data.pop(0)
+        else:
+            raise Empty
+
+    @cmd_wrapper
+    def rpush(self, k, v, instance):
+        self.data.append(v)
+
+    @cmd_wrapper
+    def llen(self, k, v, instance):
+        return len(self.data)
 
 
 class StrStore(DataStore):

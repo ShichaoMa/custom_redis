@@ -20,7 +20,7 @@ from default_data_types import *
 
 class CustomRedis(MultiThreadClosing):
     name = "redis_server"
-    default = {"str": StrStore, "hash": HashStore, "set": SetStore, "zset": ZsetStore}
+    default = {"str": StrStore, "hash": HashStore, "set": SetStore, "zset": ZsetStore, "list": ListStore}
 
     def __init__(self, host, port):
         MultiThreadClosing.__init__(self)
@@ -140,7 +140,7 @@ class CustomRedis(MultiThreadClosing):
                 try:
                     item = (getattr(self.datas.get(key, None), cmd, None) or getattr(self, cmd))(key, val, self)
                 except MethodNotExist:
-                    item = "404#-*-#Method Not Found#-*-#"
+                    item = "404#-*-#Method Not Found#-*-#\r\n\r\n"
                 # 将socket保存在w_lst中，并将keep-alive 标志保存在其val中
                 w_lst[r] = item
                 r_lst[r] = r_lst[r][:2] + (keep,)
@@ -163,16 +163,16 @@ class CustomRedis(MultiThreadClosing):
         return msg
 
     def keys(self, k, v, instance):
-        return "%s#-*-#%s#-*-#%s" % ("200", "success",
+        return "%s#-*-#%s#-*-#%s\r\n\r\n" % ("200", "success",
                                      json.dumps(filter(lambda x: fnmatch.fnmatch(x, k), self.datas.keys())))
 
     def expire(self, k, v, instance):
         self.expire_keys[k] = int(time.time() + int(v))
-        return "200#-*-#success#-*-#"
+        return "200#-*-#success#-*-#\r\n\r\n"
 
     def type(self, k, v, instance):
         data = self.datas[k]
-        return "200#-*-#success#-*-#%s"%data.__class__.__name__[:-5].lower()
+        return "200#-*-#success#-*-#%s\r\n\r\n"%data.__class__.__name__[:-5].lower()
 
     def ttl(self, k, v, instance):
         expire = self.expire_keys.get(k)
@@ -180,18 +180,18 @@ class CustomRedis(MultiThreadClosing):
             expire = int(expire - time.time())
         else:
             expire = -1
-        return "200#-*-#success#-*-#%d" % expire
+        return "200#-*-#success#-*-#%d\r\n\r\n" % expire
 
     def delete(self, k, v, instance):
         try:
             del self.datas[k]
         except KeyError:
             pass
-        return "200#-*-#success#-*-#"
+        return "200#-*-#success#-*-#\r\n\r\n"
 
     def flushall(self, k, v, instance):
         self.datas = {}
-        return "200#-*-#success#-*-#"
+        return "200#-*-#success#-*-#\r\n\r\n"
 
     @classmethod
     def parse_args(cls):
