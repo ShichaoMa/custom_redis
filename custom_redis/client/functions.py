@@ -45,8 +45,8 @@ CMD_DICT = {
         "send": lambda *args: "%s<->%s" % (args[0], json.dumps(args[1])),
     },
     "zadd": {
-        "args": ["name", "key", "value"],
-        "send": lambda *args: "%s<->%s" % (args[0], json.dumps(dict([args[1:]]))),
+        "args": ["name", "value", "key"],
+        "send": lambda *args: "%s<->%s" % (args[0], json.dumps(dict([reversed(args[1:])]))),
     },
     "zpop": {
         "args": ["name"],
@@ -71,5 +71,33 @@ CMD_DICT = {
         "send": lambda *args: "%s<->" % args[0],
         "recv": lambda x: int(x),
         "result": 0
+    },
+    "scard": {
+        "args": ["name"],
+        "send": lambda *args: "%s<->" % args[0],
+        "recv": lambda x: int(x),
+        "result": 0
+    },
+    "sadd": {
+        "args": ["name", "value"],
+        "send": lambda *args: "%s<->%s" % (args[0], args[1]),
+    },
+    "srem": {
+        "args": ["name", "values"],
+        "send": lambda *args: "%s<->%s" % (args[0], json.dumps(args[1:])),
+    },
+    "srchoice": {
+        "args": ["name"],
+        "send": lambda *args: "%s<->" % args[0],
+    },
+    "smembers": {
+        "args": ["name"],
+        "send": lambda *args: "%s<->" % args[0],
+        "recv": lambda x: set(json.loads(x)),
+    },
+    "sismember": {
+        "args": ["name", "value"],
+        "send": lambda *args: "%s<->%s" % (args[0], args[1]),
+        "recv": lambda x: eval(x),
     },
 }
