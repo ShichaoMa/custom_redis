@@ -48,7 +48,7 @@ class ZsetStore(DataStore):
 
     @cmd_wrapper
     def zpop(self, k, v, instance):
-        return self.data.zpop()
+        return self.data.zpop(v)
 
     @cmd_wrapper
     def zcard(self, k, v, instance):

@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-import json
+from utils import safe_loads, safe_dumps
 
 
 CMD_DICT = {
@@ -15,42 +15,44 @@ CMD_DICT = {
     },
     "hset":{
         "args": ["name", "key", "value"],
-        "send":lambda *args:"%s<->%s"%(args[0], json.dumps(dict([args[1:]]))),
+        "send":lambda *args:"%s<->%s"%(args[0], safe_dumps(dict([args[1:]]))),
     },
     "hmset": {
         "args": ["name", "mapping"],
-        "send":lambda *args:"%s<->%s"%(args[0], json.dumps(args[1])),
+        "send":lambda *args:"%s<->%s"%(args[0], safe_dumps(args[1])),
     },
     "hmget": {
         "args": ["name", "key"],
-        "send": lambda *args:"%s<->%s"%(args[0], json.dumps(args[1:])),
-        "recv": lambda data:json.loads(data),
+        "send": lambda *args:"%s<->%s"%(args[0], safe_dumps(args[1:])),
+        "recv": lambda data:safe_loads(data),
     },
     "hgetall": {
         "args": ["name"],
         "send": lambda *args: "%s<->" % args[0],
-        "recv": lambda data: json.loads(data),
+        "recv": lambda data: safe_loads(data),
     },
     "hincrby": {
         "args": ["name", "key", "value"],
-        "send": lambda *args:"%s<->%s"%(args[0], json.dumps(dict([args[1:]]))),
+        "send": lambda *args:"%s<->%s"%(args[0], safe_dumps(dict([args[1:]]))),
         "default":[1]
     },
     "pop": {
         "args": ["name"],
-        "recv": lambda data: json.loads(data),
+        "recv": lambda data: safe_loads(data),
     },
     "push": {
         "args": ["name", "value"],
-        "send": lambda *args: "%s<->%s" % (args[0], json.dumps(args[1])),
+        "send": lambda *args: "%s<->%s" % (args[0], safe_dumps(args[1])),
     },
     "zadd": {
         "args": ["name", "value", "key"],
-        "send": lambda *args: "%s<->%s" % (args[0], json.dumps(dict([reversed(args[1:])]))),
+        "send": lambda *args: "%s<->%s" % (args[0], safe_dumps(dict([reversed(args[1:])]))),
     },
     "zpop": {
-        "args": ["name"],
-        "send": lambda *args: "%s<->" % args[0],
+        "args": ["name", "withscores"],
+        "send": lambda *args: "%s<->%s" % (args[0], (True if args[1] in [True, "withscores"] else "")),
+        "recv": lambda data: safe_loads(data),
+        "default":[False]
     },
     "zcard": {
         "args": ["name"],
@@ -84,7 +86,7 @@ CMD_DICT = {
     },
     "srem": {
         "args": ["name", "values"],
-        "send": lambda *args: "%s<->%s" % (args[0], json.dumps(args[1:])),
+        "send": lambda *args: "%s<->%s" % (args[0], json.safe_dumps(args[1:])),
     },
     "srchoice": {
         "args": ["name"],
@@ -93,7 +95,7 @@ CMD_DICT = {
     "smembers": {
         "args": ["name"],
         "send": lambda *args: "%s<->" % args[0],
-        "recv": lambda x: set(json.loads(x)),
+        "recv": lambda x: set(safe_loads(x)),
     },
     "sismember": {
         "args": ["name", "value"],
