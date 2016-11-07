@@ -118,11 +118,16 @@ class SortedSet:
         else:
             return [x.key for x in nodes]
 
-    def zpop(self):
-        data = self.zrange(0, 0)
+    def zpop(self, withscores=False):
+        print 22222222222222, withscores
+        data = self.zrange(0, 0, withscores)
+        print 1111111111, data
         if data:
             data = data[0]
-            self.zrem(data)
+            if withscores:
+                self.zrem(data[0])
+            else:
+                self.zrem(data)
             return data
         raise Empty
 

@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
+import json
 import traceback
-
 
 
 class SafeList(list):
@@ -21,6 +21,18 @@ def default_send(*args):
 def default_recv(x):
     return x
 
+
+def safe_loads(data):
+    try:
+        return json.loads(data)
+    except ValueError:
+        return data
+
+def safe_dumps(data):
+    try:
+        return json.dumps(data)
+    except ValueError:
+        return data
 
 def func_name_wrapper(name):
     def wrapper(func):

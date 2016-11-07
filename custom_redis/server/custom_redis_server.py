@@ -45,7 +45,7 @@ class CustomRedis(MultiThreadClosing):
     def load(self, line):
         try:
             if line:
-                key, expire_time, val = line.split("    ")
+                key, expire_time, val = line.split("1qazxsw23edc")
                 val = pickle.loads(val)
                 if len(self.data_type) < 2:
                     cls = self.data_type.values()[0].loads(val)
@@ -110,8 +110,8 @@ class CustomRedis(MultiThreadClosing):
         self.logger.info("persist datas...")
         for key, val in self.datas.items():
             stream.write(key)
-            stream.write('    %s' % self.expire_keys.get(key, ""))
-            stream.write('    ')
+            stream.write('1qazxsw23edc%s' % self.expire_keys.get(key, ""))
+            stream.write('1qazxsw23edc')
             val.persist(stream)
         stream.close()
 
