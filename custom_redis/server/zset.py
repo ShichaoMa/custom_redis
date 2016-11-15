@@ -119,9 +119,7 @@ class SortedSet:
             return [x.key for x in nodes]
 
     def zpop(self, withscores=False):
-        print 22222222222222, withscores
         data = self.zrange(0, 0, withscores)
-        print 1111111111, data
         if data:
             data = data[0]
             if withscores:
