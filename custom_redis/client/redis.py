@@ -5,6 +5,7 @@ import time
 import errno
 import argparse
 
+from copy import deepcopy
 from socket import socket
 
 from functions import CMD_DICT
@@ -40,7 +41,7 @@ class Redis(object):
         args = SafeList(args)
         func_name = kwargs["_name"]
         properties = CMD_DICT[func_name]
-        default_value = properties.get("default", [])
+        default_value = deepcopy(properties.get("default", []))
         try:
             arguments = []
             for arg in properties["args"]:
