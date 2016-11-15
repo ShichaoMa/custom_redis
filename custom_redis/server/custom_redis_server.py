@@ -87,7 +87,7 @@ class CustomRedis(MultiThreadClosing):
         self.logger.debug("listen  to %s:%s"%(host, port))
         server = socket.socket()
         server.bind((host, port))
-        server.listen(0)
+        server.listen(10)
         r_lst = {server: None}
         w_lst = {}
         # 若执行过程中出现异常r_lst中的server也被清掉，程序退出
