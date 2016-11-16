@@ -1,12 +1,15 @@
 # -*- coding:utf-8 -*-
-"""redis_server"""
+"""redis server"""
 import os
+import sys
 import time
 import errno
 import socket
 import select
+import logging
 import fnmatch
 import traceback
+from logging import handlers
 
 from argparse import ArgumentParser
 from threading import Thread
@@ -19,11 +22,13 @@ from default_data_types import *
 
 
 class CustomRedis(MultiThreadClosing):
+
     name = "redis_server"
     default = {"str": StrStore, "hash": HashStore, "set": SetStore, "zset": ZsetStore, "list": ListStore}
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, **kwargs):
         MultiThreadClosing.__init__(self)
+        self.meta = kwargs
         self.host = host
         self.port = port
         self.data_type = {}
@@ -84,7 +89,7 @@ class CustomRedis(MultiThreadClosing):
 
     def listen_request(self, host, port):
         """监听函数"""
-        self.logger.debug("listen  to %s:%s"%(host, port))
+        self.logger.info("listen  to %s:%s"%(host, port))
         server = socket.socket()
         server.bind((host, port))
         server.listen(10)
@@ -196,14 +201,28 @@ class CustomRedis(MultiThreadClosing):
     @classmethod
     def parse_args(cls):
         parser = ArgumentParser()
-        parser.add_argument("--host", dest="host", help="host", default="127.0.0.1")
-        parser.add_argument("-p", "--port", type=int, dest="port", help="port", default=7777)
+        parser.add_argument("--host", help="host", default="127.0.0.1")
+        parser.add_argument("-p", "--port", type=int, help="port", default=6379)
+        parser.add_argument("-lf", "--log-file", action="store_true", help="log to file, else log to stdout. " )
+        parser.add_argument("-ld", "--log-dir", default=".")
+        parser.add_argument("-ll", "--log-level", default="DEBUG", choices=["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"])
+        parser.add_argument("--log-format", default="'%(asctime)s [%(name)s] %(levelname)s: %(message)s'")
         return cls(**vars(parser.parse_args()))
 
 
 def start_server():
     cr = CustomRedis.parse_args()
-    cr.set_logger()
+    logger = logging.getLogger(cr.name)
+    logger.setLevel(getattr(logging, cr.meta.get("log_level")))
+    if cr.meta.get("log_file"):
+        handler = handlers.RotatingFileHandler(os.path.join(cr.meta.get("log_dir"),
+                                                            "%s.log"%cr.name), maxBytes=10240000, backupCount=5)
+    else:
+        handler = logging.StreamHandler(sys.stdout)
+    formater = logging.Formatter(cr.meta.get("log_format"))
+    handler.setFormatter(formater)
+    logger.addHandler(handler)
+    cr.set_logger(logger)
     cr.start()
 
 
