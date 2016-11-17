@@ -12,10 +12,8 @@ class SafeList(list):
 
 
 def default_send(*args):
-    if len(args) == 1:
-        return "%s<->"%tuple(args)
-    else:
-        return "%s<->%s"%tuple(args)
+    """对于参数数量确定的，有且只有一个的情况，可以使用默认发送函数"""
+    return (args[0], "")
 
 
 def default_recv(x):
@@ -51,4 +49,17 @@ def handle_safely(func):
             traceback.print_exc()
             return data
     return wrapper
+
+
+def escape(datas):
+    d = []
+    for data in datas:
+        if isinstance(data, basestring):
+            data = data.replace("<->", "1qaxsw234fds3gbhfvhtedfvfg").replace("#-*-#", "jp0n988n80434nlj3pdf0909mn")
+        d.append(data)
+    return tuple(d)
+
+
+def unescape(data):
+    return data.replace("1qaxsw234fds3gbhfvhtedfvfg", "<->").replace("jp0n988n80434nlj3pdf0909mn", "#-*-#")
 

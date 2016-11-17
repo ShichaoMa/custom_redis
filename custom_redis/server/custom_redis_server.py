@@ -21,11 +21,11 @@ from threading import Thread, RLock
 from multi_thread_closing import MultiThreadClosing
 
 from errors import MethodNotExist, ClientClosed
-from utils import stream_wrapper
+from utils import stream_wrapper, main_cmd_wrapper
 from default_data_types import *
 
 
-class CustomRedis(MultiThreadClosing):
+class CustomRedis(MultiThreadClosing, DataStore):
 
     name = "redis_server"
     default = {"str": StrStore, "hash": HashStore, "set": SetStore, "zset": ZsetStore, "list": ListStore}
@@ -132,7 +132,7 @@ class CustomRedis(MultiThreadClosing):
     def stop(self, *args):
         self.alive = False
 
-    def persist(self):
+    def persist(self, stream=None):
         self.lock.acquire()
         with open("redis_data.db", "w") as stream:
             self.logger.info("persist datas...")
@@ -166,7 +166,11 @@ class CustomRedis(MultiThreadClosing):
                 key, val = data.split("<->")
                 # 根据指令生成item返回结果
                 try:
-                    item = (getattr(self.datas.get(key, None), cmd, None) or getattr(self, cmd))(key, val, self)
+                    method = getattr(self.datas.get(key, None), cmd, None) or getattr(self, cmd)
+                    if key in self.datas and self.datas[key].__class__ != method.im_class:
+                        item = "503#-*-#Type Not Format#-*-#\r\n\r\n"
+                    else:
+                        item = method(key, val, self)
                 except MethodNotExist:
                     item = "404#-*-#Method Not Found#-*-#\r\n\r\n"
                 # 将socket保存在w_lst中，并将keep-alive 标志保存在其val中
@@ -190,18 +194,24 @@ class CustomRedis(MultiThreadClosing):
         self.logger.info("received massage is %s" % (msg or None))
         return msg
 
+    @main_cmd_wrapper
     def keys(self, k, v, instance):
         return "%s#-*-#%s#-*-#%s\r\n\r\n" % ("200", "success",
                                      json.dumps(filter(lambda x: fnmatch.fnmatch(x, k), self.datas.keys())))
 
+    @main_cmd_wrapper
     def expire(self, k, v, instance):
-        self.expire_keys[k] = int(time.time() + int(v))
-        return "200#-*-#success#-*-#\r\n\r\n"
+        if k in self.datas:
+            self.expire_keys[k] = int(time.time() + int(v))
+            return "200#-*-#success#-*-#\r\n\r\n"
+        raise KeyError(k)
 
+    @main_cmd_wrapper
     def type(self, k, v, instance):
         data = self.datas[k]
         return "200#-*-#success#-*-#%s\r\n\r\n"%data.__class__.__name__[:-5].lower()
 
+    @main_cmd_wrapper
     def ttl(self, k, v, instance):
         expire = self.expire_keys.get(k)
         if expire:
@@ -210,6 +220,7 @@ class CustomRedis(MultiThreadClosing):
             expire = -1
         return "200#-*-#success#-*-#%d\r\n\r\n" % expire
 
+    @main_cmd_wrapper
     def delete(self, k, v, instance):
         try:
             del self.datas[k]
@@ -217,6 +228,7 @@ class CustomRedis(MultiThreadClosing):
             pass
         return "200#-*-#success#-*-#\r\n\r\n"
 
+    @main_cmd_wrapper
     def flushall(self, k, v, instance):
         self.datas = {}
         return "200#-*-#success#-*-#\r\n\r\n"

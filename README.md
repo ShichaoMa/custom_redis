@@ -70,12 +70,11 @@ cr.start()
 "hgetall":  # 指令名
 {
 "args": ["name"], # 指令所需参数
-"send": lambda *args: "%s<->" % args[0], # 转换函数，将指令所需参数转换成发送报文
 "recv": lambda data: json.loads(data), # 转换函数，将接收到的报文转换成所需数据类型，若是简单字符串则无需提供
 }
 "hincrby": {
 "args": ["name", "key", "value"],
-"send": lambda *args:"%s<->%s"%(args[0], json.dumps(dict([args[1:]]))),
+"send": lambda *args:(args[0], json.dumps(dict([args[1:]]))),# 转换函数，返回key 和value组成的元组
 "default":[1] # 指令所需参数的默认值， 从后往前排列 如：1代表value的值
 },
 # 发送报文的格式："func_name#-*-#key<->value#-*-#1" # 如 "hincrby#-*-#a<->{'b':1}#-*-#1"
