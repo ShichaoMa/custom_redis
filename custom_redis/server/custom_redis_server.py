@@ -1,5 +1,9 @@
 # -*- coding:utf-8 -*-
-"""redis server"""
+"""
+redis server
+主线程使用select进程socket监听和任务处理
+守护线线程用来持久化数据和删除过期key
+"""
 import os
 import sys
 import time
@@ -12,7 +16,7 @@ import traceback
 from logging import handlers
 
 from argparse import ArgumentParser
-from threading import Thread
+from threading import Thread, RLock
 
 from multi_thread_closing import MultiThreadClosing
 
@@ -31,9 +35,13 @@ class CustomRedis(MultiThreadClosing):
         self.meta = kwargs
         self.host = host
         self.port = port
+        # 所有数据类型
         self.data_type = {}
+        # 所有数据实例
         self.datas = {}
+        # 所有数据的过期时间
         self.expire_keys = {}
+        self.lock = RLock()
         self.open()
         self.data_type.update(self.default)
 
@@ -44,10 +52,12 @@ class CustomRedis(MultiThreadClosing):
         if os.path.exists("redis_data.db"):
             lines = open("redis_data.db").read().split("fdfsafafdsfsfdsfafdff")
             if lines:
+                self.logger.info("load datas...")
                 for line in lines:
                     self.load(line)
 
     def load(self, line):
+        # 加载数据类型
         try:
             if line:
                 key, expire_time, val = line.split("1qazxsw23edc")
@@ -67,6 +77,7 @@ class CustomRedis(MultiThreadClosing):
             self.logger.error(traceback.format_exc())
 
     def __getattr__(self, item):
+        # 遍历所有数据类型，找到数据类型对应方法并返回
         for k, v in self.data_type.items():
             attr = getattr(v, item, None)
             if attr:
@@ -75,13 +86,19 @@ class CustomRedis(MultiThreadClosing):
 
     def start(self):
         self.setup()
-        daemaon_thread = Thread(target=self.poll)
-        daemaon_thread.setDaemon(True)
-        daemaon_thread.start()
+        daemon_thread = Thread(target=self.poll)
+        daemon_thread.setDaemon(True)
+        daemon_thread.start()
         self.listen_request(self.host, self.port)
 
     def poll(self):
+        """删除过期的Key及持久化数据的守护进程"""
+        t = time.time()
         while True:
+            # 每30秒持久化一次数据
+            if time.time()-t > 30:
+                t = time.time()
+                self.persist()
             for key in self.expire_keys.keys():
                 if self.expire_keys[key] < time.time():
                     del self.datas[key], self.expire_keys[key]
@@ -103,22 +120,25 @@ class CustomRedis(MultiThreadClosing):
                     self.recv(r, w_lst, r_lst, server)
                 for w in writable:
                     self.send(w, w_lst, r_lst, None)
-                    # time.sleep(1)
         except select.error, e:
             if e.args[0] != 4:
                 raise
+        self.persist()
         self.logger.info("exit...")
 
     def stop(self, *args):
         self.alive = False
-        stream = open("redis_data.db", "w")
-        self.logger.info("persist datas...")
-        for key, val in self.datas.items():
-            stream.write(key)
-            stream.write('1qazxsw23edc%s' % self.expire_keys.get(key, ""))
-            stream.write('1qazxsw23edc')
-            val.persist(stream)
-        stream.close()
+
+    def persist(self):
+        self.lock.acquire()
+        with open("redis_data.db", "w") as stream:
+            self.logger.info("persist datas...")
+            for key, val in self.datas.items():
+                stream.write(key)
+                stream.write('1qazxsw23edc%s' % self.expire_keys.get(key, ""))
+                stream.write('1qazxsw23edc')
+                val.persist(stream)
+        self.lock.release()
 
     @stream_wrapper
     def send(self, w, w_lst, r_lst, server):

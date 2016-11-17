@@ -49,8 +49,8 @@ CMD_DICT = {
         "send": lambda *args: "%s<->%s" % (args[0], safe_dumps(dict([reversed(args[1:])]))),
     },
     "zpop": {
-        "args": ["name", "withscores"],
-        "send": lambda *args: "%s<->%s" % (args[0], (True if args[1] in [True, "withscores"] else "")),
+        "args": ["name", "withscore"],
+        "send": lambda *args: "%s<->%s" % (args[0], (True if args[1] in [True, "withscore"] else "")),
         "default":[False]
     },
     "zcard": {
@@ -85,7 +85,7 @@ CMD_DICT = {
     },
     "srem": {
         "args": ["name", "values"],
-        "send": lambda *args: "%s<->%s" % (args[0], json.safe_dumps(args[1:])),
+        "send": lambda *args: "%s<->%s" % (args[0], safe_dumps(args[1:])),
     },
     "srchoice": {
         "args": ["name"],
