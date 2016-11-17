@@ -52,7 +52,13 @@ class Redis(object):
                         kwarg = default_value.pop(0)
                 arguments.append(kwarg)
         except IndexError:
-            raise RedisArgumentError("haven't got enough arguments")
+            sub = ""
+            args = properties.get("args")
+            default_args = SafeList(deepcopy(properties.get("default", [])))
+            error_msg = "%%s haven't got enough arguments, need %s argument%s named %%s. "%(len(args), "" if len(args) == 1 else "s")
+            for arg in reversed(args):
+                sub = "%s%s"%(arg, (": default %s, "%default_args.pop(-1) if default_args else ", ")) + sub
+            raise RedisArgumentError(error_msg%(func_name, sub[:-2]))
         if args:
             arguments += args
         return self._parse_result(FORMAT % (func_name, properties.get("send", default_send)(*arguments)), properties)
