@@ -102,6 +102,9 @@ class CustomRedis(MultiThreadClosing):
             for key in self.expire_keys.keys():
                 if self.expire_keys[key] < time.time():
                     del self.datas[key], self.expire_keys[key]
+            for key in self.datas.keys():
+                if not self.datas[key].data:
+                    del self.datas[key]
             time.sleep(1)
 
     def listen_request(self, host, port):

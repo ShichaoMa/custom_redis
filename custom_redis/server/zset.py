@@ -142,3 +142,11 @@ class SortedSet:
 
     def __len__(self):
         return self.zcard
+
+
+if __name__ == "__main__":
+    a = SortedSet()
+    if a:
+        print 1111
+    else:
+        print 2222222222
