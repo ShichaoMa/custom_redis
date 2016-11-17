@@ -92,7 +92,7 @@ class CustomRedis(MultiThreadClosing):
         self.listen_request(self.host, self.port)
 
     def poll(self):
-        """删除过期的Key及持久化数据的守护进程"""
+        """删除过期的Key, 删除空集合及持久化数据的守护进程"""
         t = time.time()
         while True:
             # 每30秒持久化一次数据

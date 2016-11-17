@@ -46,6 +46,7 @@ def stream_wrapper(func):
 
 
 def cmd_wrapper(func):
+
     @wraps(func)
     def wrapper(*args):
 
