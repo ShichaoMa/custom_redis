@@ -3,7 +3,7 @@ from client import start_client
 from server import start_server
 
 
-VERSION = '1.1.2'
+VERSION = '1.1.4'
 
 AUTHOR = "cn"
 

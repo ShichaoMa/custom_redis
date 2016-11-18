@@ -167,7 +167,7 @@ class CustomRedis(MultiThreadClosing, DataStore):
                 # 根据指令生成item返回结果
                 try:
                     method = getattr(self.datas.get(key, None), cmd, None) or getattr(self, cmd)
-                    if key in self.datas and self.datas[key].__class__ != method.im_class:
+                    if key in self.datas and method.im_class not in (self.datas[key].__class__, self.__class__) :
                         item = "503#-*-#Type Not Format#-*-#\r\n\r\n"
                     else:
                         item = method(key, val, self)
