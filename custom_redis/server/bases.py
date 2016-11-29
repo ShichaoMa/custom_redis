@@ -22,21 +22,21 @@ class Meta(type):
 
 
 class StoreMeta(Meta):
-    """数据类专用MetaClass"""
+    """数据类专用元类"""
     wrapper = staticmethod(data_cmd_wrapper)
 
 
 class CommonCmdMeta(StoreMeta):
-    """通过函数类专用MetaClass"""
+    """通用函数类专用元类"""
     wrapper = staticmethod(common_cmd_wrapper)
 
 
 class RedisMeta(CommonCmdMeta):
-    """Redis类专用MetaClass"""
+    """Redis类专用元类"""
     wrapper = None
 
     def __new__(typ, *args, **kwargs):
-        # 这个地方非常诡异， 如果 通过type(*args)来组建类，类会使用CommonCmdMeta来创建
+        # 这个地方非常诡异， 如果通过type(*args)来组建类，类会使用CommonCmdMeta来创建
         # 通过type.__new__则会使用type来创建类
         # 这里我们不需要对CustomRedis类的函数进行包装操作，所以选择这种创建方式
         return type.__new__(typ, *args)
