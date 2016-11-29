@@ -48,17 +48,19 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
         self.lock = RLock()
         self.open()
         self.data_type.update(self.default)
+        self.r_lst = {}
+        self.w_lst = {}
 
     def set_logger(self, logger=None):
         self.logger = logging.getLogger(self.name)
-        self.logger.setLevel(getattr(logging, self.meta.get("log_level")))
+        self.logger.setLevel(getattr(logging, self.meta.get("log_level", "DEBUG")))
         if self.meta.get("log_file"):
             handler = handlers.RotatingFileHandler(
-                os.path.join(self.meta.get("log_dir"), "%s.log" % self.name),
+                os.path.join(self.meta.get("log_dir", "."), "%s.log" % self.name),
                 maxBytes=10240000, backupCount=5)
         else:
             handler = logging.StreamHandler(sys.stdout)
-        formater = logging.Formatter(self.meta.get("log_format"))
+        formater = logging.Formatter(self.meta.get("log_format", "%(message)s"))
         handler.setFormatter(formater)
         self.logger.addHandler(handler)
 
@@ -130,21 +132,29 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
         server = socket.socket()
         server.bind((host, port))
         server.listen(10)
-        r_lst = {server: None}
-        w_lst = {}
+        self.r_lst[server] = None
         # 若执行过程中出现异常r_lst中的server也被清掉，程序退出
         try:
-            while self.alive and r_lst:
-                readable, writable, _ = select.select(r_lst.keys(), w_lst.keys(), [], 0.1)
+            while self.alive and self.r_lst:
+                readable, writable, _ = select.select(self.r_lst.keys(), self.w_lst.keys(), [], 0.1)
                 for r in readable:
-                    self.recv(r, w_lst, r_lst, server)
+                    self.recv(r, self.w_lst, self.r_lst, server)
                 for w in writable:
-                    self.send(w, w_lst, r_lst, None)
+                    self.send(w, self.w_lst, self.r_lst, None)
         except select.error, e:
             if e.args[0] != 4:
                 raise
         self.persist()
+        self.close()
         self.logger.info("exit...")
+
+    def close(self):
+            # 只关r_list的即可
+            for i in self.r_lst.keys():
+                try:
+                    i.close()
+                except Exception:
+                    pass
 
     def stop(self, *args):
         self.alive = False
@@ -223,7 +233,7 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
         parser.add_argument("-lf", "--log-file", action="store_true", help="log to file, else log to stdout. " )
         parser.add_argument("-ld", "--log-dir", default=".")
         parser.add_argument("-ll", "--log-level", default="DEBUG", choices=["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"])
-        parser.add_argument("--log-format", default="'%(asctime)s [%(name)s] %(levelname)s: %(message)s'")
+        parser.add_argument("--log-format", default="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
         return cls(**vars(parser.parse_args()))
 
 
@@ -233,3 +243,4 @@ def start_server():
 
 if __name__ == "__main__":
     start_server()
+    #CustomRedis("127.0.01", 6379).start()
