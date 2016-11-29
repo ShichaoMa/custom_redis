@@ -17,7 +17,7 @@ python实现简单redis，实现redis基本功能以及可插拔数据结构<br>
 
     sudo pip install custom-redis
 ```
-# START:
+# START
 ```bash
     custom-redis-server --host "127.0.0.1" --port 6379
 ```
