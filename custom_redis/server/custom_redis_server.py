@@ -10,23 +10,26 @@ import time
 import errno
 import socket
 import select
+import pickle
 import logging
-import fnmatch
 import traceback
-from logging import handlers
 
+from logging import handlers
 from argparse import ArgumentParser
 from threading import Thread, RLock
 
 from multi_thread_closing import MultiThreadClosing
 
 from errors import MethodNotExist, ClientClosed
-from utils import stream_wrapper, main_cmd_wrapper
-from default_data_types import *
+from utils import stream_wrapper
+from data_types import *
+from bases import RedisMeta
+from common_commad import CommonCmd
 
 
-class CustomRedis(MultiThreadClosing, DataStore):
+class CustomRedis(CommonCmd, MultiThreadClosing):
 
+    __metaclass__ = RedisMeta
     name = "redis_server"
     default = {"str": StrStore, "hash": HashStore, "set": SetStore, "zset": ZsetStore, "list": ListStore}
 
@@ -147,30 +150,35 @@ class CustomRedis(MultiThreadClosing, DataStore):
     def send(self, w, w_lst, r_lst, server):
         # item会被保存在w_lst相应的val中
         item = w_lst[w]
-        self.logger.debug("start to send item %s to %s:%s" % ((item,) + r_lst[w][:2]))
+        self.logger.debug("start to send item %s to %s:%s" % (item, r_lst[w][0], r_lst[w][1]))
         w.send(item)
 
     @stream_wrapper
     def recv(self, r, w_lst, r_lst, server):
         if r is server:
             client, adr = r.accept()
-            self.logger.debug("get connection from %s:%s" % adr)
+            self.logger.debug("get connection from %s:%s" % (adr[0], adr[1]))
             # 将新收到的socket设置为非阻塞， 并将其保存在r_lst中
             client.setblocking(0)
             r_lst[client] = adr
         else:
-            self.logger.debug("start to recv data from %s:%s" % r_lst[r][:2])
+            self.logger.debug("start to recv data from %s:%s" % (r_lst[r][0], r_lst[r][1]))
             received = self._recv(r)
             if received:
                 cmd, data, keep = received.split("#-*-#")
                 key, val = data.split("<->")
                 # 根据指令生成item返回结果
                 try:
-                    method = getattr(self.datas.get(key, None), cmd, None) or getattr(self, cmd)
-                    if key in self.datas and self.datas[key].__class__ != method.im_class:
+                    method = getattr(self.datas.get(key, None), cmd, None)
+                    # 数据类型的方法
+                    if method and key in self.datas and self.datas[key].__class__ != method.im_class:
+                        # 类型不符合
                         item = "503#-*-#Type Not Format#-*-#\r\n\r\n"
-                    else:
+                    elif method:
                         item = method(key, val, self)
+                    else:
+                        # 通用方法
+                        item = getattr(self, cmd)(key, val, self)
                 except MethodNotExist:
                     item = "404#-*-#Method Not Found#-*-#\r\n\r\n"
                 # 将socket保存在w_lst中，并将keep-alive 标志保存在其val中
@@ -189,49 +197,9 @@ class CustomRedis(MultiThreadClosing, DataStore):
         except Exception, e:
             # 非阻塞异常直接返回
             if e.args[0] != errno.EAGAIN:
-                # traceback.print_exc()
                 pass
         self.logger.info("received massage is %s" % (msg or None))
         return msg
-
-    @main_cmd_wrapper
-    def keys(self, k, v, instance):
-        return "%s#-*-#%s#-*-#%s\r\n\r\n" % ("200", "success",
-                                     json.dumps(filter(lambda x: fnmatch.fnmatch(x, k), self.datas.keys())))
-
-    @main_cmd_wrapper
-    def expire(self, k, v, instance):
-        if k in self.datas:
-            self.expire_keys[k] = int(time.time() + int(v))
-            return "200#-*-#success#-*-#\r\n\r\n"
-        raise KeyError(k)
-
-    @main_cmd_wrapper
-    def type(self, k, v, instance):
-        data = self.datas[k]
-        return "200#-*-#success#-*-#%s\r\n\r\n"%data.__class__.__name__[:-5].lower()
-
-    @main_cmd_wrapper
-    def ttl(self, k, v, instance):
-        expire = self.expire_keys.get(k)
-        if expire:
-            expire = int(expire - time.time())
-        else:
-            expire = -1
-        return "200#-*-#success#-*-#%d\r\n\r\n" % expire
-
-    @main_cmd_wrapper
-    def delete(self, k, v, instance):
-        try:
-            del self.datas[k]
-        except KeyError:
-            pass
-        return "200#-*-#success#-*-#\r\n\r\n"
-
-    @main_cmd_wrapper
-    def flushall(self, k, v, instance):
-        self.datas = {}
-        return "200#-*-#success#-*-#\r\n\r\n"
 
     @classmethod
     def parse_args(cls):
@@ -250,7 +218,7 @@ def start_server():
     logger = logging.getLogger(cr.name)
     logger.setLevel(getattr(logging, cr.meta.get("log_level")))
     if cr.meta.get("log_file"):
-        handler = handlers.RotatingFileHandler(os.path.join(cr.meta.get("log_dir"),
+        handler = logging.handlers.RotatingFileHandler(os.path.join(cr.meta.get("log_dir"),
                                                             "%s.log"%cr.name), maxBytes=10240000, backupCount=5)
     else:
         handler = logging.StreamHandler(sys.stdout)

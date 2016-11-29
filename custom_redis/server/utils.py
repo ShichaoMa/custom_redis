@@ -45,8 +45,12 @@ def stream_wrapper(func):
     return wrapper
 
 
-def cmd_wrapper(func):
-
+def data_cmd_wrapper(func):
+    """
+    数据类型方法装饰器
+    :param func:
+    :return:
+    """
     @wraps(func)
     def wrapper(*args):
 
@@ -68,8 +72,7 @@ def cmd_wrapper(func):
     return wrapper
 
 
-def main_cmd_wrapper(func):
-
+def common_cmd_wrapper(func):
     @wraps(func)
     def wrapper(*args):
 
