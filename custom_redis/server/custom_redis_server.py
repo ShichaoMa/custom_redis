@@ -2,7 +2,7 @@
 """
 redis server
 主线程使用select进程socket监听和任务处理
-守护线线程用来持久化数据和删除过期key
+守护线程用来持久化数据和删除过期key
 """
 import os
 import sys
@@ -53,9 +53,9 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
         self.logger = logging.getLogger(self.name)
         self.logger.setLevel(getattr(logging, self.meta.get("log_level")))
         if self.meta.get("log_file"):
-            handler = handlers.RotatingFileHandler(os.path.join(self.meta.get("log_dir"),
-                                                                        "%s.log" % self.name), maxBytes=10240000,
-                                                           backupCount=5)
+            handler = handlers.RotatingFileHandler(
+                os.path.join(self.meta.get("log_dir"), "%s.log" % self.name),
+                maxBytes=10240000, backupCount=5)
         else:
             handler = logging.StreamHandler(sys.stdout)
         formater = logging.Formatter(self.meta.get("log_format"))
