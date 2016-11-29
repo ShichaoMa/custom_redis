@@ -9,9 +9,9 @@ from errors import ClientClosed
 
 def stream_wrapper(func):
     """
-    处理异常的装饰器
-    :param func: 装饰的函数
-    :return: 装饰好的函数
+    处理流异常的装饰器
+    :param func:
+    :return:
     """
 
     @wraps(func)
@@ -73,6 +73,11 @@ def data_cmd_wrapper(func):
 
 
 def common_cmd_wrapper(func):
+    """
+        通用方法装饰器
+        :param func:
+        :return:
+        """
     @wraps(func)
     def wrapper(*args):
 
@@ -84,3 +89,19 @@ def common_cmd_wrapper(func):
             return self.format_response(503, "%s:%s"%(e.__class__.__name__.lower(), e), v)
 
     return wrapper
+
+
+class LoggerDiscriptor(object):
+    """使用一个描述符封装logger"""
+
+    def __init__(self, logger=None):
+        self.logger = logger
+
+    def __get__(self, instance, cls):
+
+        if not self.logger:
+            instance.set_logger()
+        return self.logger
+
+    def __set__(self, instance, value):
+        self.logger = value

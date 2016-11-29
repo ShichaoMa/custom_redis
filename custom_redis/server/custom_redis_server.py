@@ -20,11 +20,11 @@ from threading import Thread, RLock
 
 from multi_thread_closing import MultiThreadClosing
 
-from errors import MethodNotExist, ClientClosed
-from utils import stream_wrapper
 from data_types import *
 from bases import RedisMeta
 from common_commad import CommonCmd
+from errors import MethodNotExist, ClientClosed
+from utils import stream_wrapper, LoggerDiscriptor
 
 
 class CustomRedis(CommonCmd, MultiThreadClosing):
@@ -32,6 +32,7 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
     __metaclass__ = RedisMeta
     name = "redis_server"
     default = {"str": StrStore, "hash": HashStore, "set": SetStore, "zset": ZsetStore, "list": ListStore}
+    logger = LoggerDiscriptor()
 
     def __init__(self, host, port, **kwargs):
         MultiThreadClosing.__init__(self)
@@ -47,6 +48,19 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
         self.lock = RLock()
         self.open()
         self.data_type.update(self.default)
+
+    def set_logger(self, logger=None):
+        self.logger = logging.getLogger(self.name)
+        self.logger.setLevel(getattr(logging, self.meta.get("log_level")))
+        if self.meta.get("log_file"):
+            handler = handlers.RotatingFileHandler(os.path.join(self.meta.get("log_dir"),
+                                                                        "%s.log" % self.name), maxBytes=10240000,
+                                                           backupCount=5)
+        else:
+            handler = logging.StreamHandler(sys.stdout)
+        formater = logging.Formatter(self.meta.get("log_format"))
+        handler.setFormatter(formater)
+        self.logger.addHandler(handler)
 
     def install(self, **kwds):
         self.data_type.update(kwds)
@@ -214,19 +228,7 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
 
 
 def start_server():
-    cr = CustomRedis.parse_args()
-    logger = logging.getLogger(cr.name)
-    logger.setLevel(getattr(logging, cr.meta.get("log_level")))
-    if cr.meta.get("log_file"):
-        handler = logging.handlers.RotatingFileHandler(os.path.join(cr.meta.get("log_dir"),
-                                                            "%s.log"%cr.name), maxBytes=10240000, backupCount=5)
-    else:
-        handler = logging.StreamHandler(sys.stdout)
-    formater = logging.Formatter(cr.meta.get("log_format"))
-    handler.setFormatter(formater)
-    logger.addHandler(handler)
-    cr.set_logger(logger)
-    cr.start()
+    CustomRedis.parse_args().start()
 
 
 if __name__ == "__main__":

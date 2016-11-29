@@ -8,6 +8,7 @@ from utils import data_cmd_wrapper, common_cmd_wrapper
 
 
 class Meta(type):
+    """元类基类，给方法增加装饰器"""
     wrapper = None
 
     def __new__(typ, name, bases, properties):
