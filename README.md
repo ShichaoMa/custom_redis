@@ -33,7 +33,7 @@ python实现简单redis，实现redis基本功能以及可插拔数据结构<br>
 ```
 ##demo2
 ```bash
->>> from redis import Redis
+>>> from custom_redis.client import Redis
 >>> r = Redis("127.0.0.1", 6379)
 >>> r.zadd('a', 3, 'aaa')
 ''
