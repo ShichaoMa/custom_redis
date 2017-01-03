@@ -12,7 +12,7 @@ CMD_DICT = {
     },
     "hget":{
         "args":["name", "key"],
-            "send":lambda *args: (args[0], args[1]),
+        "send":lambda *args: (args[0], args[1]),
     },
     "hset":{
         "args": ["name", "key", "value"],
