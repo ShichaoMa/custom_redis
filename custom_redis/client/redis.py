@@ -26,11 +26,7 @@ class Redis(object):
         self.setup()
 
     def setup(self):
-        if self.redis_conn:
-            try:
-                self.redis_conn.close()
-            except:
-                pass
+        self.close()
         self.redis_conn = socket()
         self.redis_conn.connect((self.host, self.port))
         self.redis_conn.settimeout(self.timeout)
@@ -110,6 +106,13 @@ class Redis(object):
     def flushall(self, *args):
         return self._parse_result(FORMAT % ("flushall", "<->"))
 
+    def close(self):
+        if self.redis_conn:
+            try:
+                self.redis_conn.close()
+            except Exception:
+                pass
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -127,6 +130,7 @@ def start_client():
     args = parse_args()
     r = Redis(args.host, args.port)
     keys = [args.key] if args.key else []
+
     if not args.keep_alive:
         FORMAT.replace("1", "0")
     if args.json:
@@ -136,6 +140,8 @@ def start_client():
         result = getattr(r, args.cmd)(*(keys + args.args))
     if result != None:
         print result
+
+    r.close()
 
 
 if __name__ == "__main__":

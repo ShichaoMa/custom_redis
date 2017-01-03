@@ -17,9 +17,9 @@ python实现简单redis，实现redis基本功能以及可插拔数据结构<br>
 
     sudo pip install custom-redis
 ```
-# START:
+# START
 ```bash
-    custom-redis-server --host "127.0.0.1" --port 6379
+    custom-redis-server
 ```
 # HELLOWORD
 ##demo1
@@ -33,7 +33,7 @@ python实现简单redis，实现redis基本功能以及可插拔数据结构<br>
 ```
 ##demo2
 ```bash
->>> from redis import Redis
+>>> from custom_redis.client import Redis
 >>> r = Redis("127.0.0.1", 6379)
 >>> r.zadd('a', 3, 'aaa')
 ''
@@ -60,7 +60,6 @@ python实现简单redis，实现redis基本功能以及可插拔数据结构<br>
 # 安装数据类型
 cr = CustomRedis.parse_args()
 cr.install(datatype=datatype())
-cr.set_logger()
 cr.start()
 ```
 #demo4
