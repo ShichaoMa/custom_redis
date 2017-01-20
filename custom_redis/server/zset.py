@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
-from Queue import Empty
+from errors import Empty
 from bisect import bisect_left,bisect_right,insort
+
 
 #定义节点
 class SNode:
@@ -13,6 +14,7 @@ class SNode:
 
     def __gt__(self,other):#没定义__gt__的话会导致bisect_right出问题,即使已经定义了__lt__
         return self.score > getattr(other,'score',other)
+
 
 #定义数组,用bisect维护顺序
 class Slist(object):
@@ -30,7 +32,8 @@ class Slist(object):
         return curpos
 
     def insert(self,key,score):
-        if not isinstance(score,int):raise Exception('score must be integer')
+        if not isinstance(score,int):
+            raise Exception('score must be integer')
         snode = self.key2node.get(key)
         if snode:
             if score == snode.score:
@@ -56,6 +59,7 @@ class Slist(object):
 
     def search(self,key):
         return self.key2node.get(key)
+
 
 class SortedSet:
     def __init__(self):
@@ -146,7 +150,3 @@ class SortedSet:
 
 if __name__ == "__main__":
     a = SortedSet()
-    if a:
-        print 1111
-    else:
-        print 2222222222

@@ -13,7 +13,7 @@ class SafeList(list):
 
 def default_send(*args):
     """对于参数数量确定的，有且只有一个的情况，可以使用默认发送函数"""
-    return (args[0], "")
+    return args[0], ""
 
 
 def default_recv(x):
@@ -26,11 +26,13 @@ def safe_loads(data):
     except ValueError:
         return data
 
+
 def safe_dumps(data):
     try:
         return json.dumps(data)
     except ValueError:
         return data
+
 
 def func_name_wrapper(name):
     def wrapper(func):
@@ -54,7 +56,7 @@ def handle_safely(func):
 def escape(datas):
     d = []
     for data in datas:
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             data = data.replace("<->", "1qaxsw234fds3gbhfvhtedfvfg").replace("#-*-#", "jp0n988n80434nlj3pdf0909mn")
         d.append(data)
     return tuple(d)

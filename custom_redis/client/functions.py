@@ -36,14 +36,6 @@ CMD_DICT = {
         "send": lambda *args: (args[0], safe_dumps(dict([args[1:]]))),
         "default":[1]
     },
-    "pop": {
-        "args": ["name"],
-        "recv": lambda data: safe_loads(data),
-    },
-    "push": {
-        "args": ["name", "value"],
-        "send": lambda *args: (args[0], safe_dumps(args[1])),
-    },
     "zadd": {
         "args": ["name", "value", "key"],
         "send": lambda *args: (args[0], safe_dumps(dict([reversed(args[1:])]))),

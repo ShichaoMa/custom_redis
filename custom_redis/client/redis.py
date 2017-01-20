@@ -52,19 +52,22 @@ class Redis(object):
             sub = ""
             args = properties.get("args")
             default_args = SafeList(deepcopy(properties.get("default", [])))
-            error_msg = "%%s haven't got enough arguments, need %s argument%s named %%s. "%(len(args), "" if len(args) == 1 else "s")
+            error_msg = "%%s haven't got enough arguments, need %s argument%s named %%s. "%(
+                len(args), "" if len(args) == 1 else "s")
             for arg in reversed(args):
-                sub = "%s%s"%(arg, (": default %s, "%default_args.pop(-1) if default_args else ", ")) + sub
+                sub = "%s%s"%(arg, (
+                    ": default %s, "%default_args.pop(-1) if default_args else ", ")) + sub
             raise RedisArgumentError(error_msg%(func_name, sub[:-2]))
         if args:
             arguments += args
-        return self._parse_result(FORMAT % (func_name, "%s<->%s"%escape(properties.get("send", default_send)(*arguments))), properties)
+        return self._parse_result(FORMAT % (
+            func_name, "%s<->%s"%escape(properties.get("send", default_send)(*arguments))), properties)
 
     def _parse_result(self, buf, properties={}):
         count = 0
-        result = ""
+        result = b""
         try:
-            self.redis_conn.send(buf)
+            self.redis_conn.send(buf.encode("utf-8"))
         except Exception as e:
             if e.args[0] == errno.EPIPE and count < 3:
                 self.setup()
@@ -76,8 +79,9 @@ class Redis(object):
             recv = self.redis_conn.recv(1024000)
             if recv:
                 result += recv
-            if not recv or recv.endswith("\r\n\r\n"):
+            if not recv or recv.endswith(b"\r\n\r\n"):
                 break
+        result = result.decode("utf-8")
         a = result.split("#-*-#")
         code, info, data = a
         data = data[:-4]
@@ -139,7 +143,7 @@ def start_client():
     else:
         result = getattr(r, args.cmd)(*(keys + args.args))
     if result != None:
-        print result
+        print(result)
 
     r.close()
 

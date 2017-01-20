@@ -7,14 +7,13 @@ import fnmatch
 from bases import DataStore, CommonCmdMeta
 
 
-class CommonCmd(DataStore):
+class CommonCmd(DataStore, metaclass=CommonCmdMeta):
     """通用函数类"""
-    __metaclass__ = CommonCmdMeta
     expire_keys = {}
 
     def keys(self, k, v, instance):
         return "%s#-*-#%s#-*-#%s\r\n\r\n" % ("200", "success",
-                                     json.dumps(filter(lambda x: fnmatch.fnmatch(x, k), self.datas.keys())))
+                                     json.dumps([x for x in self.datas.keys() if fnmatch.fnmatch(x, k)]))
 
     def expire(self, k, v, instance):
         if k in self.datas:

@@ -2,8 +2,7 @@
 import json
 import random
 
-from Queue import Queue, Empty
-
+from errors import Empty
 from zset import SortedSet
 from bases import DataStore
 
@@ -13,7 +12,7 @@ class ZsetStore(DataStore):
     data_type = SortedSet
 
     def zadd(self, k, v, instance):
-        k, v = self._parses(v).items()[0]
+        k, v = [i for i in self._parses(v).items()][0]
         self.data.zadd(v, int(k))
 
     def zpop(self, k, v, instance):
@@ -21,17 +20,6 @@ class ZsetStore(DataStore):
 
     def zcard(self, k, v, instance):
         return self.data.zcard
-
-
-class QueueStore(DataStore):
-
-    data_type = Queue
-
-    def pop(self, k, v, instance):
-        return self.data.get_nowait()
-
-    def push(self, k, v, instance):
-        self.data.put(v)
 
 
 class ListStore(DataStore):
@@ -116,7 +104,7 @@ class HashStore(DataStore):
 
     def hincrby(self, k, v, instance):
         k_vs = self._parses(v)
-        k = k_vs.keys()[0]
+        k = list(k_vs.keys())[0]
         v = k_vs[k]
         self.data[k] = int(self.data.get(k, 0)) + int(v)
 

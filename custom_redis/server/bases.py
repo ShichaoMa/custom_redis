@@ -43,9 +43,8 @@ class RedisMeta(CommonCmdMeta):
         return type.__new__(typ, *args)
 
 
-class DataStore(object):
+class DataStore(object, metaclass=StoreMeta):
     """数据基类"""
-    __metaclass__ = StoreMeta
     data_type = None
 
     def __init__(self, logger, data=None):
@@ -64,7 +63,7 @@ class DataStore(object):
 
     def persist(self, stream):
         stream.write(pickle.dumps(self.data))
-        stream.write("fdfsafafdsfsfdsfafdff")
+        stream.write(b"fdfsafafdsfsfdsfafdff")
 
     def _parses(self, v):
         return json.loads(v)

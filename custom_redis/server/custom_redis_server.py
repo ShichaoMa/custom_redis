@@ -15,6 +15,7 @@ import logging
 import traceback
 
 from logging import handlers
+from functools import reduce
 from argparse import ArgumentParser
 from threading import Thread, RLock
 
@@ -22,14 +23,13 @@ from multi_thread_closing import MultiThreadClosing
 
 from data_types import *
 from bases import RedisMeta
-from common_commad import CommonCmd
+from common_command import CommonCmd
 from errors import MethodNotExist, ClientClosed
 from utils import stream_wrapper, LoggerDiscriptor
 
 
-class CustomRedis(CommonCmd, MultiThreadClosing):
+class CustomRedis(CommonCmd, MultiThreadClosing, metaclass=RedisMeta):
 
-    __metaclass__ = RedisMeta
     name = "redis_server"
     default = {"str": StrStore, "hash": HashStore, "set": SetStore, "zset": ZsetStore, "list": ListStore}
     logger = LoggerDiscriptor()
@@ -69,7 +69,7 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
 
     def setup(self):
         if os.path.exists("redis_data.db"):
-            lines = open("redis_data.db").read().split("fdfsafafdsfsfdsfafdff")
+            lines = open("redis_data.db", "rb").read().split(b"fdfsafafdsfsfdsfafdff")
             if lines:
                 self.logger.info("load datas...")
                 for line in lines:
@@ -79,10 +79,11 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
         # 加载数据类型
         try:
             if line:
-                key, expire_time, val = line.split("1qazxsw23edc")
+                key, expire_time, val = line.split(b"1qazxsw23edc")
+                key = key.decode("utf-8")
                 val = pickle.loads(val)
                 if len(self.data_type) < 2:
-                    cls = self.data_type.values()[0].loads(val)
+                    cls = list(self.data_type.values())[0].loads(val)
                 else:
                     cls = reduce(lambda x, y:
                                  (x.loads(val) if hasattr(x, "loads") else None) or
@@ -90,7 +91,7 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
                                  self.data_type.values())
                 if cls:
                     self.datas[key] = cls(self.logger, val)
-                    if expire_time:
+                    if expire_time != b"-1":
                         self.expire_keys[key] = int(expire_time)
         except Exception:
             self.logger.error(traceback.format_exc())
@@ -118,10 +119,10 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
             if time.time()-t > 30:
                 t = time.time()
                 self.persist()
-            for key in self.expire_keys.keys():
+            for key in list(self.expire_keys.keys()):
                 if self.expire_keys[key] < time.time():
                     del self.datas[key], self.expire_keys[key]
-            for key in self.datas.keys():
+            for key in [i for i in self.datas.keys()]:
                 if not self.datas[key].data:
                     del self.datas[key]
             time.sleep(1)
@@ -141,7 +142,7 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
                     self.recv(r, self.w_lst, self.r_lst, server)
                 for w in writable:
                     self.send(w, self.w_lst, self.r_lst, None)
-        except select.error, e:
+        except select.error as e:
             if e.args[0] != 4:
                 raise
         self.persist()
@@ -161,12 +162,12 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
 
     def persist(self, stream=None):
         self.lock.acquire()
-        with open("redis_data.db", "w") as stream:
+        with open("redis_data.db", "wb") as stream:
             self.logger.info("persist datas...")
             for key, val in self.datas.items():
-                stream.write(key)
-                stream.write('1qazxsw23edc%s' % self.expire_keys.get(key, ""))
-                stream.write('1qazxsw23edc')
+                stream.write(key.encode("utf-8"))
+                stream.write(b'1qazxsw23edc%d' % self.expire_keys.get(key, -1))
+                stream.write(b'1qazxsw23edc')
                 val.persist(stream)
         self.lock.release()
 
@@ -175,7 +176,7 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
         # item会被保存在w_lst相应的val中
         item = w_lst[w]
         self.logger.debug("start to send item %s to %s:%s" % (item, r_lst[w][0], r_lst[w][1]))
-        w.send(item)
+        w.send(item.encode("utf-8"))
 
     @stream_wrapper
     def recv(self, r, w_lst, r_lst, server):
@@ -193,16 +194,18 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
                 key, val = data.split("<->")
                 # 根据指令生成item返回结果
                 try:
-                    method = getattr(self.datas.get(key, None), cmd, None)
+                    method = getattr(self.datas.get(key, None), cmd, None) or getattr(self, cmd)
+                    #method = getattr(self.datas.get(key, None), cmd, None)
                     # 数据类型的方法
-                    if method and key in self.datas and self.datas[key].__class__ != method.im_class:
+                    if method and key in self.datas and method.__self__!= self and \
+                                    self.datas[key].__class__ != method.__self__.__class__:
                         # 类型不符合
                         item = "503#-*-#Type Not Format#-*-#\r\n\r\n"
-                    elif method:
-                        item = method(key, val, self)
                     else:
-                        # 通用方法
-                        item = getattr(self, cmd)(key, val, self)
+                        item = method(key, val, self)
+                    # else:
+                    #     # 通用方法
+                    #     item = getattr(self, cmd)(key, val, self)
                 except MethodNotExist:
                     item = "404#-*-#Method Not Found#-*-#\r\n\r\n"
                 # 将socket保存在w_lst中，并将keep-alive 标志保存在其val中
@@ -212,18 +215,18 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
                 raise ClientClosed("closed")
 
     def _recv(self, r):
-        msg = ""
+        msg = b""
         try:
             buf = r.recv(1024)
             while buf:
                 msg += buf
                 buf = r.recv(1024)
-        except Exception, e:
+        except Exception as e:
             # 非阻塞异常直接返回
             if e.args[0] != errno.EAGAIN:
                 pass
         self.logger.info("received massage is %s" % (msg or None))
-        return msg
+        return msg.decode("utf-8")
 
     @classmethod
     def parse_args(cls):

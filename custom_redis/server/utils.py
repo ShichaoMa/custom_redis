@@ -1,10 +1,9 @@
 # -*- coding:utf-8 -*-
 import traceback
 
-from Queue import Empty
 from functools import wraps
 
-from errors import ClientClosed
+from errors import ClientClosed, Empty
 
 
 def stream_wrapper(func):
