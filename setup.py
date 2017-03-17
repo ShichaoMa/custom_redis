@@ -1,13 +1,11 @@
 # -*- coding:utf-8 -*-
-import codecs
-import os
 try:
     from setuptools import setup, find_packages
 except:
     from distutils.core import setup
 
 
-VERSION = '3.0.0'
+VERSION = '3.0.1'
 
 AUTHOR = "cn"
 
@@ -19,11 +17,11 @@ NAME = "custom-redis"
 
 DESCRIPTION = "python实现简单redis，实现redis基本功能以及可插拔数据结构。 "
 
+try:
+    LONG_DESCRIPTION = open("README.rst").read()
+except UnicodeDecodeError:
+    LONG_DESCRIPTION = open("README.rst", encoding="utf-8").read()
 
-def read(fname):
-    return codecs.open(os.path.join(os.path.dirname(__file__), fname)).read()
-
-LONG_DESCRIPTION = read("README.rst")
 
 KEYWORDS = "custom redis"
 
