@@ -2,9 +2,9 @@
 import json
 import random
 
-from errors import Empty
-from zset import SortedSet
-from bases import DataStore
+from .errors import Empty
+from .zset import SortedSet
+from .bases import DataStore
 
 
 class ZsetStore(DataStore):

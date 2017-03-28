@@ -4,7 +4,7 @@ import json
 import types
 import pickle
 
-from utils import data_cmd_wrapper, common_cmd_wrapper
+from .utils import data_cmd_wrapper, common_cmd_wrapper
 
 
 class Meta(type):

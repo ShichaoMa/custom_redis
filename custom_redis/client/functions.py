@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from utils import safe_loads, safe_dumps
+from .utils import safe_loads, safe_dumps
 
 
 CMD_DICT = {

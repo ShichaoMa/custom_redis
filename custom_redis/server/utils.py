@@ -3,7 +3,7 @@ import traceback
 
 from functools import wraps
 
-from errors import ClientClosed, Empty
+from .errors import ClientClosed, Empty
 
 
 def stream_wrapper(func):

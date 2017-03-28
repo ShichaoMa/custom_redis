@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from errors import Empty
+from .errors import Empty
 from bisect import bisect_left,bisect_right,insort
 
 

@@ -8,9 +8,9 @@ import argparse
 from copy import deepcopy
 from socket import socket
 
-from functions import CMD_DICT
-from errors import RedisArgumentError, RedisError
-from utils import SafeList, func_name_wrapper, handle_safely,\
+from .functions import CMD_DICT
+from .errors import RedisArgumentError, RedisError
+from .utils import SafeList, func_name_wrapper, handle_safely,\
     default_recv, default_send, escape, unescape
 
 FORMAT = "%s#-*-#%s#-*-#1"

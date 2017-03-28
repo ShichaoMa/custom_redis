@@ -21,11 +21,11 @@ from threading import Thread, RLock
 
 from multi_thread_closing import MultiThreadClosing
 
-from data_types import *
-from bases import RedisMeta
-from common_command import CommonCmd
-from errors import MethodNotExist, ClientClosed
-from utils import stream_wrapper, LoggerDiscriptor
+from .data_types import *
+from .bases import RedisMeta
+from .common_command import CommonCmd
+from .errors import MethodNotExist, ClientClosed
+from .utils import stream_wrapper, LoggerDiscriptor
 
 
 class CustomRedis(CommonCmd, MultiThreadClosing, metaclass=RedisMeta):

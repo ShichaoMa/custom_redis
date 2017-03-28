@@ -4,7 +4,7 @@ import time
 import json
 import fnmatch
 
-from bases import DataStore, CommonCmdMeta
+from .bases import DataStore, CommonCmdMeta
 
 
 class CommonCmd(DataStore, metaclass=CommonCmdMeta):
