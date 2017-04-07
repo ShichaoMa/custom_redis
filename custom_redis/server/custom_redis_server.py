@@ -193,6 +193,8 @@ class CustomRedis(CommonCmd, MultiThreadClosing):
                 key, val = data.split("<->")
                 # 根据指令生成item返回结果
                 try:
+                    # method = getattr(self.datas.get(key, None), cmd, None) or getattr(self, cmd)
+                    # if key in self.datas and method.im_class not in (self.datas[key].__class__, self.__class__) :
                     method = getattr(self.datas.get(key, None), cmd, None)
                     # 数据类型的方法
                     if method and key in self.datas and self.datas[key].__class__ != method.im_class:
