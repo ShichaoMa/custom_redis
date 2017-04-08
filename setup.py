@@ -11,7 +11,7 @@ VERSION = '1.1.4'
 
 AUTHOR = "cn"
 
-AUTHOR_EMAIL = "308299269@qq.com"
+AUTHOR_EMAIL = "cnaafhvk@foxmail.com"
 
 URL = "https://www.github.com/ShichaoMa/custom_redis"
 
