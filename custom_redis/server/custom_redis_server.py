@@ -225,7 +225,7 @@ class CustomRedis(CommonCmd, MultiThreadClosing, metaclass=RedisMeta):
             # 非阻塞异常直接返回
             if e.args[0] != errno.EAGAIN:
                 pass
-        self.logger.info("received massage is %s" % (msg or None))
+        self.logger.debug("received massage is %s" % (msg or None))
         return msg
 
     @classmethod

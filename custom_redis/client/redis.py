@@ -137,7 +137,7 @@ def start_client():
     keys = [args.key] if args.key else []
 
     if not args.keep_alive:
-        FORMAT.replace("1", "0")
+        FORMAT.replace(b"1", b"0")
     if args.json:
         mapping = [json.loads(args.args[0])]
         result = getattr(r, args.cmd)(*(keys + mapping))
