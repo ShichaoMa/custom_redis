@@ -42,7 +42,8 @@ CMD_DICT = {
     },
     "zpop": {
         "args": ["name", "withscore"],
-        "send": lambda *args: (args[0], (True if args[1] in [True, "withscore"] else "")),
+        "send": lambda *args: (args[0], (True if args[1] in [True, "withscore"] else b"")),
+        "recv": lambda data:safe_loads(data),
         "default":[False]
     },
     "zcard": {

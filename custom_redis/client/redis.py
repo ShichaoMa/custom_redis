@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 """redis_client"""
 import json
+import pickle
 import time
 import errno
 import argparse
@@ -13,7 +14,7 @@ from .errors import RedisArgumentError, RedisError
 from .utils import SafeList, func_name_wrapper, handle_safely,\
     default_recv, default_send, escape, unescape
 
-FORMAT = "%s#-*-#%s#-*-#1"
+FORMAT = b"%s#-*-#%s#-*-#1"
 
 
 class Redis(object):
@@ -61,13 +62,13 @@ class Redis(object):
         if args:
             arguments += args
         return self._parse_result(FORMAT % (
-            func_name, "%s<->%s"%escape(properties.get("send", default_send)(*arguments))), properties)
+            func_name.encode("utf-8"), b"%s<->%s"%escape(properties.get("send", default_send)(*arguments))), properties)
 
     def _parse_result(self, buf, properties={}):
         count = 0
         result = b""
         try:
-            self.redis_conn.send(buf.encode("utf-8"))
+            self.redis_conn.send(buf)
         except Exception as e:
             if e.args[0] == errno.EPIPE and count < 3:
                 self.setup()
@@ -81,34 +82,34 @@ class Redis(object):
                 result += recv
             if not recv or recv.endswith(b"\r\n\r\n"):
                 break
-        result = result.decode("utf-8")
-        a = result.split("#-*-#")
+        result = result
+        a = result.split(b"#-*-#")
         code, info, data = a
         data = data[:-4]
-        if code == "200":
+        if code == b"200":
             return handle_safely(properties.get("recv", default_recv))(unescape(data))
-        elif code == "502":
+        elif code == b"502":
             return properties.get("result", data)
         else:
-            raise RedisError("%s:%s, data: %s"%(code, info, data))
+            raise RedisError(b"%s:%s, data: %s"%(code, info, data))
 
     def keys(self, pattern="*", *args):
-        return self._parse_result(FORMAT%("keys", "%s<->%s"%escape((pattern, ""))), {"recv":json.loads})
+        return self._parse_result(FORMAT%(b"keys", b"%s<->%s"%escape((pattern, b""))), {"recv":pickle.loads})
 
     def type(self, key, *args):
-        return self._parse_result(FORMAT % ("type", "%s<->%s" % escape((key, ""))))
+        return self._parse_result(FORMAT % (b"type", b"%s<->%s" % escape((key, b""))))
 
     def delete(self, key, *args):
-        return self._parse_result(FORMAT % ("delete", "%s<->%s" % escape((key, ""))))
+        return self._parse_result(FORMAT % (b"delete", b"%s<->%s" % escape((key, b""))))
 
     def expire(self, key, seconds, *args):
-        return self._parse_result(FORMAT % ("expire", "%s<->%s" % escape((key, seconds))))
+        return self._parse_result(FORMAT % (b"expire", b"%s<->%s" % escape((key, str(seconds)))))
 
     def ttl(self, key, *args):
-        return self._parse_result(FORMAT % ("ttl", "%s<->%s" % escape((key, ""))))
+        return self._parse_result(FORMAT % (b"ttl", b"%s<->%s" % escape((key, ""))), {"recv":int})
 
     def flushall(self, *args):
-        return self._parse_result(FORMAT % ("flushall", "<->"))
+        return self._parse_result(FORMAT % (b"flushall", b"<->"))
 
     def close(self):
         if self.redis_conn:

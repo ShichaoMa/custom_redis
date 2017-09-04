@@ -21,11 +21,11 @@ from threading import Thread, RLock
 
 from multi_thread_closing import MultiThreadClosing
 
-from .data_types import *
 from .bases import RedisMeta
 from .common_command import CommonCmd
 from .errors import MethodNotExist, ClientClosed
 from .utils import stream_wrapper, LoggerDiscriptor
+from .data_types import ZsetStore, StrStore, HashStore, SetStore, ListStore
 
 
 class CustomRedis(CommonCmd, MultiThreadClosing, metaclass=RedisMeta):
@@ -80,7 +80,6 @@ class CustomRedis(CommonCmd, MultiThreadClosing, metaclass=RedisMeta):
         try:
             if line:
                 key, expire_time, val = line.split(b"1qazxsw23edc")
-                key = key.decode("utf-8")
                 val = pickle.loads(val)
                 if len(self.data_type) < 2:
                     cls = list(self.data_type.values())[0].loads(val)
@@ -165,7 +164,7 @@ class CustomRedis(CommonCmd, MultiThreadClosing, metaclass=RedisMeta):
         with open("redis_data.db", "wb") as stream:
             self.logger.info("persist datas...")
             for key, val in self.datas.items():
-                stream.write(key.encode("utf-8"))
+                stream.write(key)
                 stream.write(b'1qazxsw23edc%d' % self.expire_keys.get(key, -1))
                 stream.write(b'1qazxsw23edc')
                 val.persist(stream)
@@ -176,7 +175,7 @@ class CustomRedis(CommonCmd, MultiThreadClosing, metaclass=RedisMeta):
         # item会被保存在w_lst相应的val中
         item = w_lst[w]
         self.logger.debug("start to send item %s to %s:%s" % (item, r_lst[w][0], r_lst[w][1]))
-        w.send(item.encode("utf-8"))
+        w.send(item)
 
     @stream_wrapper
     def recv(self, r, w_lst, r_lst, server):
@@ -190,24 +189,25 @@ class CustomRedis(CommonCmd, MultiThreadClosing, metaclass=RedisMeta):
             self.logger.debug("start to recv data from %s:%s" % (r_lst[r][0], r_lst[r][1]))
             received = self._recv(r)
             if received:
-                cmd, data, keep = received.split("#-*-#")
-                key, val = data.split("<->")
+                cmd, data, keep = received.split(b"#-*-#")
+                cmd = cmd.decode("utf-8")
+                key, val = data.split(b"<->")
                 # 根据指令生成item返回结果
                 try:
                     method = getattr(self.datas.get(key, None), cmd, None) or getattr(self, cmd)
                     #method = getattr(self.datas.get(key, None), cmd, None)
                     # 数据类型的方法
-                    if method and key in self.datas and method.__self__!= self and \
+                    if method and key in self.datas and method.__self__ != self and \
                                     self.datas[key].__class__ != method.__self__.__class__:
                         # 类型不符合
-                        item = "503#-*-#Type Not Format#-*-#\r\n\r\n"
+                        item = b"503#-*-#Type Not Format#-*-#\r\n\r\n"
                     else:
                         item = method(key, val, self)
                     # else:
                     #     # 通用方法
                     #     item = getattr(self, cmd)(key, val, self)
                 except MethodNotExist:
-                    item = "404#-*-#Method Not Found#-*-#\r\n\r\n"
+                    item = b"404#-*-#Method Not Found#-*-#\r\n\r\n"
                 # 将socket保存在w_lst中，并将keep-alive 标志保存在其val中
                 w_lst[r] = item
                 r_lst[r] = r_lst[r][:2] + (keep,)
@@ -226,7 +226,7 @@ class CustomRedis(CommonCmd, MultiThreadClosing, metaclass=RedisMeta):
             if e.args[0] != errno.EAGAIN:
                 pass
         self.logger.info("received massage is %s" % (msg or None))
-        return msg.decode("utf-8")
+        return msg
 
     @classmethod
     def parse_args(cls):

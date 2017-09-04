@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-import json
+import pickle
 import random
 
 from .errors import Empty
@@ -16,10 +16,10 @@ class ZsetStore(DataStore):
         self.data.zadd(v, int(k))
 
     def zpop(self, k, v, instance):
-        return self.data.zpop(v)
+        return pickle.dumps(self.data.zpop(v))
 
     def zcard(self, k, v, instance):
-        return self.data.zcard
+        return str(self.data.zcard).encode("utf-8")
 
 
 class ListStore(DataStore):
@@ -36,7 +36,7 @@ class ListStore(DataStore):
         self.data.append(v)
 
     def llen(self, k, v, instance):
-        return len(self.data)
+        return str(len(self.data)).encode("utf-8")
 
 
 class StrStore(DataStore):
@@ -47,7 +47,7 @@ class StrStore(DataStore):
         self.data += v
 
     def slice(self, k, v, instance):
-        return eval("self.data[%s]" % v)
+        return eval(b"self.data[%s]" % v)
 
     def set(self, k, v, instance):
         self.data = v
@@ -64,18 +64,18 @@ class SetStore(DataStore):
         self.data.add(v)
 
     def scard(self, k, v, instance):
-        return len(self.data)
+        return str(len(self.data)).encode("utf-8")
 
     def smembers(self, k, v, instance):
-        return json.dumps(list(self.data))
+        return pickle.dumps(list(self.data))
 
     def srem(self, k, v, instance):
         values = self._parses(v)
         for value in values:
-            self.data.remove(value)
+            self.data.remove(bytes(str(value), encoding="utf-8"))
 
     def sismember(self, k, v, instance):
-        return v in self.data
+        return str(v in self.data).encode("utf-8")
 
     def srchoice(self, k, v, instance):
         return random.choice(list(self.data))
@@ -89,7 +89,12 @@ class HashStore(DataStore):
         self.data.update(self._parses(v))
 
     def hget(self, k, v, instance):
-        return self.data[v]
+        if isinstance(v, bytes):
+            v = v.decode("utf-8")
+        data = self.data[v]
+        if not isinstance(data, bytes):
+            data = str(data).encode("utf-8")
+        return data
 
     def hmset(self, k, v, instance):
         k_vs = self._parses(v)
@@ -97,10 +102,10 @@ class HashStore(DataStore):
 
     def hmget(self, k, v, instance):
         ks = self._parses(v)
-        return json.dumps(dict(filter(lambda x: x[0] in ks, self.data.items())))
+        return pickle.dumps(dict(filter(lambda x: x[0] in ks, self.data.items())))
 
     def hgetall(self, k, v, instance):
-        return json.dumps(self.data)
+        return pickle.dumps(self.data)
 
     def hincrby(self, k, v, instance):
         k_vs = self._parses(v)

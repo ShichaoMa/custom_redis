@@ -58,15 +58,15 @@ def data_cmd_wrapper(func):
             self.key = k
             instance.datas[k] = self
             self.logger.info("process in method %s" % func.__name__)
-            return self.format_response(200, "success", func(*args))
+            return self.format_response(b"200", b"success", func(*args))
         except (Empty, KeyError):
             if not self.data:
                 del instance.datas[k]
             self.logger.error(traceback.format_exc())
-            return self.format_response(502, "Empty", "")
+            return self.format_response(b"502", b"Empty", b"")
         except Exception as e:
             self.logger.error(traceback.format_exc())
-            return self.format_response(503, "%s:%s"%(e.__class__.__name__.lower(), e), v)
+            return self.format_response(b"503", ("%s:%s"%(e.__class__.__name__.lower(), e)).encode("utf-8"), v)
 
     return wrapper
 
@@ -85,7 +85,7 @@ def common_cmd_wrapper(func):
             return func(*args)
         except Exception as e:
             self.logger.error(traceback.format_exc())
-            return self.format_response(503, "%s:%s"%(e.__class__.__name__.lower(), e), v)
+            return self.format_response(b"503", ("%s:%s"%(e.__class__.__name__.lower(), e)).encode("utf-8"), v)
 
     return wrapper
 

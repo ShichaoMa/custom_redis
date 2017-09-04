@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 """这里定义的是一些通用的方法"""
 import time
-import json
+import pickle
 import fnmatch
 
 from .bases import DataStore, CommonCmdMeta
@@ -12,18 +12,18 @@ class CommonCmd(DataStore, metaclass=CommonCmdMeta):
     expire_keys = {}
 
     def keys(self, k, v, instance):
-        return "%s#-*-#%s#-*-#%s\r\n\r\n" % ("200", "success",
-                                     json.dumps([x for x in self.datas.keys() if fnmatch.fnmatch(x, k)]))
+        return b"%s#-*-#%s#-*-#%s\r\n\r\n" % (b"200", b"success",
+                                             pickle.dumps([x for x in self.datas.keys() if fnmatch.fnmatch(x, k)]))
 
     def expire(self, k, v, instance):
         if k in self.datas:
             self.expire_keys[k] = int(time.time() + int(v))
-            return "200#-*-#success#-*-#\r\n\r\n"
+            return b"200#-*-#success#-*-#\r\n\r\n"
         raise KeyError(k)
 
     def type(self, k, v, instance):
         data = self.datas[k]
-        return "200#-*-#success#-*-#%s\r\n\r\n"%data.__class__.__name__[:-5].lower()
+        return ("200#-*-#success#-*-#%s\r\n\r\n"%data.__class__.__name__[:-5].lower()).encode("utf-8")
 
     def ttl(self, k, v, instance):
         expire = self.expire_keys.get(k)
@@ -31,15 +31,15 @@ class CommonCmd(DataStore, metaclass=CommonCmdMeta):
             expire = int(expire - time.time())
         else:
             expire = -1
-        return "200#-*-#success#-*-#%d\r\n\r\n" % expire
+        return ("200#-*-#success#-*-#%d\r\n\r\n" % expire).encode("utf-8")
 
     def delete(self, k, v, instance):
         try:
             del self.datas[k]
         except KeyError:
             pass
-        return "200#-*-#success#-*-#\r\n\r\n"
+        return b"200#-*-#success#-*-#\r\n\r\n"
 
     def flushall(self, k, v, instance):
         self.datas = {}
-        return "200#-*-#success#-*-#\r\n\r\n"
+        return b"200#-*-#success#-*-#\r\n\r\n"

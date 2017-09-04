@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 """这里定义一些框架基类和元类"""
-import json
 import types
 import pickle
 
@@ -58,15 +57,15 @@ class DataStore(object, metaclass=StoreMeta):
     @staticmethod
     def format_response(code, info, data):
         if data is None:
-            data = ""
-        return "%s#-*-#%s#-*-#%s\r\n\r\n" % (code, info, data)
+            data = b""
+        return b"%s#-*-#%s#-*-#%s\r\n\r\n" % (code, info, data)
 
     def persist(self, stream):
         stream.write(pickle.dumps(self.data))
         stream.write(b"fdfsafafdsfsfdsfafdff")
 
     def _parses(self, v):
-        return json.loads(v)
+        return pickle.loads(v)
 
     @classmethod
     def loads(cls, val):
