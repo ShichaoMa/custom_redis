@@ -17,7 +17,6 @@ class Meta(type):
                 if isinstance(v, types.FunctionType):
                     # 由于这个方法会被继承，通过提供不同的wrapper函数来做不同的包装， RedisMeta没有提供，所以不包装
                     properties[k] = typ.wrapper(v) if typ.wrapper else v
-
         return super(Meta, typ).__new__(typ, name, bases, properties)
 
 
@@ -36,10 +35,16 @@ class RedisMeta(CommonCmdMeta):
     wrapper = None
 
     def __new__(typ, *args, **kwargs):
-        # 这个地方非常诡异， 如果通过type(*args)来组建类，类会使用CommonCmdMeta来创建
-        # 通过type.__new__则会使用type来创建类
-        # 这里我们不需要对CustomRedis类的函数进行包装操作，所以选择这种创建方式
-        return type.__new__(typ, *args)
+        # 这个地方非常诡异， 如果通过type(*args)来组建类，类会使用CommonCmdMeta来创建，可能原因是通过type返回的类是type创建的
+        # 当使用默认type创建时，python认为该类没有指定元类，所以继续调用了父类的元类进行创建。
+        # 通过type.__new__则会使用RedisMeta创建
+        # 不通过super(RedisMeta, typ).__new__(typ, *args)创建，是因为这样会调用CommonCmdMeta.__new__，这不是我们想要的。
+        # 这里我们不需要对CustomRedis类的函数进行包装操作，所以选择使用type.__new__创建
+        return super(RedisMeta, typ).__new__(typ, *args)
+
+    def __init__(cls, *args, **kwargs):
+        # 当创建的实例(在这里是类)不是RedisMeta类型时，比如通过type()直接返回，__init__不会被调用。
+        pass
 
 
 class DataStore(object, metaclass=StoreMeta):
