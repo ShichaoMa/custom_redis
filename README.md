@@ -7,6 +7,9 @@ python实现简单redis，实现redis基本功能以及可插拔数据结构<br>
 2 Redis 的keys, expire, ttl, del等功能已实现<br/>
 3 数据持久化功能已实现<br/>
 
+## server架构
+![](https://github.com/ShichaoMa/custom_redis/blob/master/redis-server.jpg)
+
 # INSTALL
 ## windows && ubuntu
 ```bash
