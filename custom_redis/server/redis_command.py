@@ -4,12 +4,17 @@ import time
 import pickle
 import fnmatch
 
-from .bases import DataStore, CommonCmdMeta
+from abc import abstractmethod
+
+from .bases import RedisCommandMeta
 
 
-class CommonCmd(DataStore, metaclass=CommonCmdMeta):
+class RedisCommand(object, metaclass=RedisCommandMeta):
     """通用函数类"""
-    expire_keys = {}
+    @property
+    @abstractmethod
+    def expire_keys(self):
+        pass
 
     def keys(self, k, v, instance):
         return b"%s#-*-#%s#-*-#%s\r\n\r\n" % (b"200", b"success",

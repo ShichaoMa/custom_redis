@@ -12,7 +12,7 @@ class ZsetStore(DataStore):
     data_type = SortedSet
 
     def zadd(self, k, v, instance):
-        k, v = [i for i in self._parses(v).items()][0]
+        k, v = [i for i in pickle.loads(v).items()][0]
         self.data.zadd(v, int(k))
 
     def zpop(self, k, v, instance):
@@ -70,7 +70,7 @@ class SetStore(DataStore):
         return pickle.dumps(list(self.data))
 
     def srem(self, k, v, instance):
-        values = self._parses(v)
+        values = pickle.loads(v)
         for value in values:
             self.data.remove(bytes(str(value), encoding="utf-8"))
 
@@ -86,7 +86,7 @@ class HashStore(DataStore):
     data_type = dict
 
     def hset(self, k, v, instance):
-        self.data.update(self._parses(v))
+        self.data.update(pickle.loads(v))
 
     def hget(self, k, v, instance):
         if isinstance(v, bytes):
@@ -97,18 +97,18 @@ class HashStore(DataStore):
         return data
 
     def hmset(self, k, v, instance):
-        k_vs = self._parses(v)
+        k_vs = pickle.loads(v)
         self.data.update(dict(k_vs))
 
     def hmget(self, k, v, instance):
-        ks = self._parses(v)
+        ks = pickle.loads(v)
         return pickle.dumps(dict(filter(lambda x: x[0] in ks, self.data.items())))
 
     def hgetall(self, k, v, instance):
         return pickle.dumps(self.data)
 
     def hincrby(self, k, v, instance):
-        k_vs = self._parses(v)
+        k_vs = pickle.loads(v)
         k = list(k_vs.keys())[0]
         v = k_vs[k]
         self.data[k] = int(self.data.get(k, 0)) + int(v)

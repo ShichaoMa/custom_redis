@@ -5,11 +5,11 @@ except:
     from distutils.core import setup
 
 
-VERSION = '3.1.2'
+VERSION = '3.1.3'
 
 AUTHOR = "cn"
 
-AUTHOR_EMAIL = "308299269@qq.com"
+AUTHOR_EMAIL = "308299269@foxmail.com"
 
 URL = "https://www.github.com/ShichaoMa/custom_redis"
 
@@ -52,7 +52,7 @@ setup(
     url = URL,
     license = LICENSE,
     packages = PACKAGES,
-    install_requires=["multi-thread-closing"],
+    install_requires=["toolkit"],
     include_package_data=True,
     zip_safe=True,
 )

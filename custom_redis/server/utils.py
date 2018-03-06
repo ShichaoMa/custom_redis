@@ -58,15 +58,15 @@ def data_cmd_wrapper(func):
             self.key = k
             instance.datas[k] = self
             self.logger.info("process in method %s" % func.__name__)
-            return self.format_response(b"200", b"success", func(*args))
+            return format_response(b"200", b"success", func(*args))
         except (Empty, KeyError):
             if not self.data:
                 del instance.datas[k]
             self.logger.error(traceback.format_exc())
-            return self.format_response(b"502", b"Empty", b"")
+            return format_response(b"502", b"Empty", b"")
         except Exception as e:
             self.logger.error(traceback.format_exc())
-            return self.format_response(b"503", ("%s:%s"%(e.__class__.__name__.lower(), e)).encode("utf-8"), v)
+            return format_response(b"503", ("%s:%s"%(e.__class__.__name__.lower(), e)).encode("utf-8"), v)
 
     return wrapper
 
@@ -85,22 +85,12 @@ def common_cmd_wrapper(func):
             return func(*args)
         except Exception as e:
             self.logger.error(traceback.format_exc())
-            return self.format_response(b"503", ("%s:%s"%(e.__class__.__name__.lower(), e)).encode("utf-8"), v)
+            return format_response(b"503", ("%s:%s"%(e.__class__.__name__.lower(), e)).encode("utf-8"), v)
 
     return wrapper
 
 
-class LoggerDiscriptor(object):
-    """使用一个描述符封装logger"""
-
-    def __init__(self, logger=None):
-        self.logger = logger
-
-    def __get__(self, instance, cls):
-
-        if not self.logger:
-            instance.set_logger()
-        return self.logger
-
-    def __set__(self, instance, value):
-        self.logger = value
+def format_response(code, info, data):
+    if data is None:
+        data = b""
+    return b"%s#-*-#%s#-*-#%s\r\n\r\n" % (code, info, data)

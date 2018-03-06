@@ -5,22 +5,22 @@ from .utils import safe_loads, safe_dumps
 CMD_DICT = {
     "set": {
         "args": ["name", "value"],
-        "send":lambda *args: (args[0], args[1]),
+        "send": lambda *args: (args[0], args[1]),
     },
     "get": {
         "args": ["name",],
     },
-    "hget":{
-        "args":["name", "key"],
-        "send":lambda *args: (args[0], args[1]),
+    "hget": {
+        "args": ["name", "key"],
+        "send": lambda *args: (args[0], args[1]),
     },
-    "hset":{
+    "hset": {
         "args": ["name", "key", "value"],
-        "send":lambda *args: (args[0], safe_dumps(dict([args[1:]]))),
+        "send": lambda *args: (args[0], safe_dumps(dict([args[1:]]))),
     },
     "hmset": {
         "args": ["name", "mapping"],
-        "send":lambda *args: (args[0], safe_dumps(args[1])),
+        "send": lambda *args: (args[0], safe_dumps(args[1])),
     },
     "hmget": {
         "args": ["name", "key"],
@@ -34,7 +34,7 @@ CMD_DICT = {
     "hincrby": {
         "args": ["name", "key", "value"],
         "send": lambda *args: (args[0], safe_dumps(dict([args[1:]]))),
-        "default":[1]
+        "default": [1]
     },
     "zadd": {
         "args": ["name", "value", "key"],
@@ -44,7 +44,7 @@ CMD_DICT = {
         "args": ["name", "withscore"],
         "send": lambda *args: (args[0], (True if args[1] in [True, "withscore"] else b"")),
         "recv": lambda data:safe_loads(data),
-        "default":[False]
+        "default": [False]
     },
     "zcard": {
         "args": ["name"],
