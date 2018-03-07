@@ -1,10 +1,9 @@
 # -*- coding:utf-8 -*-
 import traceback
 
-from Queue import Empty
 from functools import wraps
 
-from errors import ClientClosed
+from .errors import ClientClosed
 
 
 def stream_wrapper(func):
@@ -13,10 +12,8 @@ def stream_wrapper(func):
     :param func:
     :return:
     """
-
     @wraps(func)
     def wrapper(*args):
-
         self, stream, w_lst, r_lst, server = args
         is_error = None
         is_closed = None
@@ -41,67 +38,10 @@ def stream_wrapper(func):
                         stream.close()
                     except:
                         pass
-
     return wrapper
 
 
-def data_cmd_wrapper(func):
-    """
-    数据类型方法装饰器
-    :param func:
-    :return:
-    """
-    @wraps(func)
-    def wrapper(*args):
-
-        self, k, v, instance = args
-        try:
-            self.key = k
-            instance.datas[k] = self
-            self.logger.info("process in method %s" % func.__name__)
-            return self.format_response(200, "success", func(*args))
-        except (Empty, KeyError):
-            if not self.data:
-                del instance.datas[k]
-            self.logger.error(traceback.format_exc())
-            return self.format_response(502, "Empty", "")
-        except Exception as e:
-            self.logger.error(traceback.format_exc())
-            return self.format_response(503, "%s:%s"%(e.__class__.__name__.lower(), e), v)
-
-    return wrapper
-
-
-def common_cmd_wrapper(func):
-    """
-        通用方法装饰器
-        :param func:
-        :return:
-        """
-    @wraps(func)
-    def wrapper(*args):
-
-        self, k, v, instance = args
-        try:
-            return func(*args)
-        except Exception as e:
-            self.logger.error(traceback.format_exc())
-            return self.format_response(503, "%s:%s"%(e.__class__.__name__.lower(), e), v)
-
-    return wrapper
-
-
-class LoggerDiscriptor(object):
-    """使用一个描述符封装logger"""
-
-    def __init__(self, logger=None):
-        self.logger = logger
-
-    def __get__(self, instance, cls):
-
-        if not self.logger:
-            instance.set_logger()
-        return self.logger
-
-    def __set__(self, instance, value):
-        self.logger = value
+def format_response(code, info, data):
+    if data is None:
+        data = b""
+    return b"%s#-*-#%s#-*-#%s\r\n\r\n" % (code, info, data)

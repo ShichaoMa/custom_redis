@@ -7,3 +7,7 @@ class MethodNotExist(Exception):
 
 class ClientClosed(Exception):
     pass
+
+
+class Empty(Exception):
+    pass

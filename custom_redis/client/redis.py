@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 """redis_client"""
 import json
+import pickle
 import time
 import errno
 import argparse
@@ -8,12 +9,12 @@ import argparse
 from copy import deepcopy
 from socket import socket
 
-from functions import CMD_DICT
-from errors import RedisArgumentError, RedisError
-from utils import SafeList, func_name_wrapper, handle_safely,\
+from .functions import CMD_DICT
+from .errors import RedisArgumentError, RedisError
+from .utils import SafeList, func_name_wrapper, handle_safely,\
     default_recv, default_send, escape, unescape
 
-FORMAT = "%s#-*-#%s#-*-#1"
+FORMAT = b"%s#-*-#%s#-*-#1"
 
 
 class Redis(object):
@@ -52,17 +53,20 @@ class Redis(object):
             sub = ""
             args = properties.get("args")
             default_args = SafeList(deepcopy(properties.get("default", [])))
-            error_msg = "%%s haven't got enough arguments, need %s argument%s named %%s. "%(len(args), "" if len(args) == 1 else "s")
+            error_msg = "%%s haven't got enough arguments, need %s argument%s named %%s. "%(
+                len(args), "" if len(args) == 1 else "s")
             for arg in reversed(args):
-                sub = "%s%s"%(arg, (": default %s, "%default_args.pop(-1) if default_args else ", ")) + sub
+                sub = "%s%s"%(arg, (
+                    ": default %s, "%default_args.pop(-1) if default_args else ", ")) + sub
             raise RedisArgumentError(error_msg%(func_name, sub[:-2]))
         if args:
             arguments += args
-        return self._parse_result(FORMAT % (func_name, "%s<->%s"%escape(properties.get("send", default_send)(*arguments))), properties)
+        return self._parse_result(FORMAT % (
+            func_name.encode("utf-8"), b"%s<->%s"%escape(properties.get("send", default_send)(*arguments))), properties)
 
     def _parse_result(self, buf, properties={}):
         count = 0
-        result = ""
+        result = b""
         try:
             self.redis_conn.send(buf)
         except Exception as e:
@@ -76,35 +80,36 @@ class Redis(object):
             recv = self.redis_conn.recv(1024000)
             if recv:
                 result += recv
-            if not recv or recv.endswith("\r\n\r\n"):
+            if not recv or recv.endswith(b"\r\n\r\n"):
                 break
-        a = result.split("#-*-#")
+        result = result
+        a = result.split(b"#-*-#")
         code, info, data = a
         data = data[:-4]
-        if code == "200":
+        if code == b"200":
             return handle_safely(properties.get("recv", default_recv))(unescape(data))
-        elif code == "502":
+        elif code == b"502":
             return properties.get("result", data)
         else:
-            raise RedisError("%s:%s, data: %s"%(code, info, data))
+            raise RedisError(b"%s:%s, data: %s"%(code, info, data))
 
     def keys(self, pattern="*", *args):
-        return self._parse_result(FORMAT%("keys", "%s<->%s"%escape((pattern, ""))), {"recv":json.loads})
+        return self._parse_result(FORMAT%(b"keys", b"%s<->%s"%escape((pattern, b""))), {"recv":pickle.loads})
 
     def type(self, key, *args):
-        return self._parse_result(FORMAT % ("type", "%s<->%s" % escape((key, ""))))
+        return self._parse_result(FORMAT % (b"type", b"%s<->%s" % escape((key, b""))))
 
     def delete(self, key, *args):
-        return self._parse_result(FORMAT % ("delete", "%s<->%s" % escape((key, ""))))
+        return self._parse_result(FORMAT % (b"delete", b"%s<->%s" % escape((key, b""))))
 
     def expire(self, key, seconds, *args):
-        return self._parse_result(FORMAT % ("expire", "%s<->%s" % escape((key, seconds))))
+        return self._parse_result(FORMAT % (b"expire", b"%s<->%s" % escape((key, str(seconds)))))
 
     def ttl(self, key, *args):
-        return self._parse_result(FORMAT % ("ttl", "%s<->%s" % escape((key, ""))))
+        return self._parse_result(FORMAT % (b"ttl", b"%s<->%s" % escape((key, ""))), {"recv":int})
 
     def flushall(self, *args):
-        return self._parse_result(FORMAT % ("flushall", "<->"))
+        return self._parse_result(FORMAT % (b"flushall", b"<->"))
 
     def close(self):
         if self.redis_conn:
@@ -132,14 +137,14 @@ def start_client():
     keys = [args.key] if args.key else []
 
     if not args.keep_alive:
-        FORMAT.replace("1", "0")
+        FORMAT.replace(b"1", b"0")
     if args.json:
         mapping = [json.loads(args.args[0])]
         result = getattr(r, args.cmd)(*(keys + mapping))
     else:
         result = getattr(r, args.cmd)(*(keys + args.args))
     if result != None:
-        print result
+        print(result)
 
     r.close()
 

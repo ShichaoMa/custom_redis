@@ -1,17 +1,15 @@
 # -*- coding:utf-8 -*-
-import codecs
-import os
 try:
     from setuptools import setup, find_packages
 except:
     from distutils.core import setup
 
 
-VERSION = '1.1.4'
+VERSION = '3.1.3'
 
 AUTHOR = "cn"
 
-AUTHOR_EMAIL = "308299269@qq.com"
+AUTHOR_EMAIL = "308299269@foxmail.com"
 
 URL = "https://www.github.com/ShichaoMa/custom_redis"
 
@@ -19,11 +17,11 @@ NAME = "custom-redis"
 
 DESCRIPTION = "python实现简单redis，实现redis基本功能以及可插拔数据结构。 "
 
+try:
+    LONG_DESCRIPTION = open("README.rst").read()
+except UnicodeDecodeError:
+    LONG_DESCRIPTION = open("README.rst", encoding="utf-8").read()
 
-def read(fname):
-    return codecs.open(os.path.join(os.path.dirname(__file__), fname)).read()
-
-LONG_DESCRIPTION = read("README.rst")
 
 KEYWORDS = "custom redis"
 
@@ -54,7 +52,7 @@ setup(
     url = URL,
     license = LICENSE,
     packages = PACKAGES,
-    install_requires=["multi-thread-closing"],
+    install_requires=["toolkit"],
     include_package_data=True,
     zip_safe=True,
 )

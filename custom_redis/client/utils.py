@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-import json
+import pickle
 import traceback
 
 
@@ -13,7 +13,7 @@ class SafeList(list):
 
 def default_send(*args):
     """对于参数数量确定的，有且只有一个的情况，可以使用默认发送函数"""
-    return (args[0], "")
+    return args[0], b""
 
 
 def default_recv(x):
@@ -22,15 +22,17 @@ def default_recv(x):
 
 def safe_loads(data):
     try:
-        return json.loads(data)
+        return pickle.loads(data)
     except ValueError:
         return data
 
+
 def safe_dumps(data):
     try:
-        return json.dumps(data)
+        return pickle.dumps(data)
     except ValueError:
         return data
+
 
 def func_name_wrapper(name):
     def wrapper(func):
@@ -54,12 +56,13 @@ def handle_safely(func):
 def escape(datas):
     d = []
     for data in datas:
-        if isinstance(data, basestring):
-            data = data.replace("<->", "1qaxsw234fds3gbhfvhtedfvfg").replace("#-*-#", "jp0n988n80434nlj3pdf0909mn")
+        if not isinstance(data, bytes):
+            data = str(data).encode("utf-8")
+        data = data.replace(b"<->", b"1qaxsw234fds3gbhfvhtedfvfg").replace(b"#-*-#", b"jp0n988n80434nlj3pdf0909mn")
         d.append(data)
     return tuple(d)
 
 
 def unescape(data):
-    return data.replace("1qaxsw234fds3gbhfvhtedfvfg", "<->").replace("jp0n988n80434nlj3pdf0909mn", "#-*-#")
+    return data.replace(b"1qaxsw234fds3gbhfvhtedfvfg", b"<->").replace(b"jp0n988n80434nlj3pdf0909mn", b"#-*-#")
 
