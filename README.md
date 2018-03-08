@@ -6,9 +6,10 @@ python实现简单redis，实现redis基本功能以及可插拔数据结构<br>
 1 通过继承DataStore类，可以定制个性化数据类型，通过调用redis类的install方法安装数据类型，目前已实现的数据类型有str, set, queue, hash, <br/>
 2 Redis 的keys, expire, ttl, del等功能已实现<br/>
 3 数据持久化功能已实现<br/>
-
-## server架构
-![](https://github.com/ShichaoMa/custom_redis/blob/master/redis-server.jpg)
+## data flow
+![](https://github.com/ShichaoMa/custom_redis/blob/master/resources/redis.jpg)
+## server类图
+![](https://github.com/ShichaoMa/custom_redis/blob/master/resources/redis-server.jpg)
 
 # INSTALL
 ## windows && ubuntu
