@@ -42,7 +42,8 @@ class StoreMeta(Meta):
                 return format_response(b"502", b"Empty", b"")
             except Exception as e:
                 self.logger.error(traceback.format_exc())
-                return format_response(b"503", ("%s:%s" % (e.__class__.__name__.lower(), e)).encode("utf-8"), v)
+                return format_response(
+                    b"503", "{}:{}".format(e.__class__.__name__.lower(), e).encode(), v)
         return inner
 
 
@@ -57,23 +58,14 @@ class RedisCommandMeta(Meta, SingletonABCMeta):
                 return func(*args)
             except Exception as e:
                 self.logger.error(traceback.format_exc())
-                return format_response(b"503", ("%s:%s" % (e.__class__.__name__.lower(), e)).encode("utf-8"), v)
+                return format_response(
+                    b"503", "{}:{}".format(e.__class__.__name__.lower(), e).encode(), v)
         return inner
 
 
 class RedisMeta(RedisCommandMeta):
     """Redis类专用元类"""
     wrapper = None
-
-    # def __new__(mcs, *args, **kwargs):
-    #     # 这个地方非常诡异， 如果通过type(*args)来组建类，类会使用CommonCmdMeta来创建，可能原因是通过type返回的类是type创建的
-    #     # 当使用默认type创建时，python认为该类没有指定元类，所以继续调用了父类的元类进行创建。
-    #     # 通过type.__new__则会使用RedisMeta创建
-    #     return super().__new__(mcs, *args)
-
-    # def __init__(cls, *args, **kwargs):
-    #     # 当创建的实例(在这里是类)不是RedisMeta类型时，比如通过type()直接返回，__init__不会被调用。
-    #     pass
 
 
 class DataCommonCommand(object):
