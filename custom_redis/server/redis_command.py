@@ -4,17 +4,13 @@ import time
 import pickle
 import fnmatch
 
-from abc import abstractmethod
-
 from .bases import RedisCommandMeta
 
 
 class RedisCommand(object, metaclass=RedisCommandMeta):
     """通用函数类"""
-    @property
-    @abstractmethod
-    def expire_keys(self):
-        pass
+    expire_keys = None
+    datas = None
 
     def keys(self, k, v, instance):
         return b"%s#-*-#%s#-*-#%s\r\n\r\n" % (b"200", b"success",

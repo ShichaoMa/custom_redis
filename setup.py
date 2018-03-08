@@ -52,7 +52,6 @@ setup(
     url = URL,
     license = LICENSE,
     packages = PACKAGES,
-    install_requires=["toolkit"],
     include_package_data=True,
     zip_safe=True,
 )

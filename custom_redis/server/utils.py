@@ -41,6 +41,23 @@ def stream_wrapper(func):
     return wrapper
 
 
+def cache_property(func):
+    """
+    缓存属性，只计算一次
+    :param func:
+    :return:
+    """
+    @property
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        self = args[0]
+        prop_name = "_%s"%func.__name__
+        if prop_name not in self.__dict__:
+            self.__dict__[prop_name] = func(*args, **kwargs)
+        return self.__dict__[prop_name]
+    return wrapper
+
+
 def format_response(code, info, data):
     if data is None:
         data = b""

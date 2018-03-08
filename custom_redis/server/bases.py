@@ -5,7 +5,6 @@ import pickle
 import traceback
 
 from functools import wraps
-from toolkit.singleton import SingletonABCMeta
 
 from .errors import Empty
 from .utils import format_response
@@ -47,7 +46,7 @@ class StoreMeta(Meta):
         return inner
 
 
-class RedisCommandMeta(Meta, SingletonABCMeta):
+class RedisCommandMeta(Meta):
     """通用函数类专用元类"""
     @staticmethod
     def wrapper(func):
@@ -61,11 +60,6 @@ class RedisCommandMeta(Meta, SingletonABCMeta):
                 return format_response(
                     b"503", "{}:{}".format(e.__class__.__name__.lower(), e).encode(), v)
         return inner
-
-
-class RedisMeta(RedisCommandMeta):
-    """Redis类专用元类"""
-    wrapper = None
 
 
 class DataCommonCommand(object):

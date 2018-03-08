@@ -8,6 +8,7 @@ import os
 import sys
 import time
 import errno
+import signal
 import socket
 import select
 import pickle
@@ -19,24 +20,24 @@ from functools import reduce
 from argparse import ArgumentParser
 from threading import Thread, RLock
 
-from toolkit import cache_property
-from toolkit.monitors import ParallelMonitor
-
-from .bases import RedisMeta
-from .utils import stream_wrapper
+from .data_types import *
 from .redis_command import RedisCommand
 from .errors import MethodNotExist, ClientClosed
-from .data_types import ZsetStore, StrStore, HashStore, SetStore, ListStore
+from .utils import stream_wrapper, cache_property
 
 
-class RedisServer(RedisCommand, ParallelMonitor, metaclass=RedisMeta):
-
+class RedisServer(object):
     name = "redis_server"
-    default_data_types = {"str": StrStore, "hash": HashStore, "set": SetStore, "zset": ZsetStore, "list": ListStore}
+    default_data_types = {"str": StrStore,
+                          "hash": HashStore,
+                          "set": SetStore,
+                          "zset": ZsetStore,
+                          "list": ListStore}
     expire_keys = None
+    alive = True
+    int_signal_count = 1
 
     def __init__(self):
-        ParallelMonitor.__init__(self)
         self.args = self.parse_args()
         self.host = self.args.get("host")
         self.port = self.args.get("port")
@@ -47,10 +48,29 @@ class RedisServer(RedisCommand, ParallelMonitor, metaclass=RedisMeta):
         # 所有数据的过期时间
         self.expire_keys = {}
         self.lock = RLock()
-        self.open()
         self.data_type.update(self.default_data_types)
         self.r_lst = {}
         self.w_lst = {}
+        self.redis_command = self.get_common_command()
+        signal.signal(signal.SIGINT, self.stop)
+        signal.signal(signal.SIGTERM, self.stop)
+
+    def get_common_command(self):
+        redis_command = RedisCommand()
+        redis_command.expire_keys = self.expire_keys
+        redis_command.logger = self.logger
+        redis_command.datas = self.datas
+        return redis_command
+
+    def stop(self, *args):
+        if self.int_signal_count > 1:
+            self.logger.info("Force to terminate...")
+            pid = os.getpid()
+            os.kill(pid, 9)
+        else:
+            self.alive = False
+            self.logger.info("Close process %s..." % self.name)
+            self.int_signal_count += 1
 
     @cache_property
     def logger(self):
@@ -99,6 +119,9 @@ class RedisServer(RedisCommand, ParallelMonitor, metaclass=RedisMeta):
             self.logger.error(traceback.format_exc())
 
     def __getattr__(self, item):
+        cmd = getattr(self.redis_command, item, None)
+        if cmd:
+            return cmd
         # 遍历所有数据类型，找到数据类型对应方法并返回
         for k, v in self.data_type.items():
             attr = getattr(v, item, None)
@@ -110,7 +133,6 @@ class RedisServer(RedisCommand, ParallelMonitor, metaclass=RedisMeta):
         self.setup()
         poll_thread = Thread(target=self.poll)
         poll_thread.start()
-        self.children.append(poll_thread)
         self.listen_request(self.host, self.port)
 
     def poll(self):
