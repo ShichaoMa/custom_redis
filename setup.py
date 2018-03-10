@@ -5,7 +5,7 @@ except:
     from distutils.core import setup
 
 
-VERSION = '3.1.3'
+VERSION = '3.1.4'
 
 AUTHOR = "cn"
 
@@ -30,11 +30,11 @@ LICENSE = "MIT"
 PACKAGES = ["custom_redis", "custom_redis.client", "custom_redis.server"]
 
 setup(
-    name = NAME,
-    version = VERSION,
-    description = DESCRIPTION,
-    long_description = LONG_DESCRIPTION,
-    classifiers = [
+    name=NAME,
+    version=VERSION,
+    description=DESCRIPTION,
+    long_description=LONG_DESCRIPTION,
+    classifiers=[
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Intended Audience :: Developers',
@@ -46,12 +46,12 @@ setup(
             'custom-redis-client = custom_redis:start_client',
         ],
     },
-    keywords = KEYWORDS,
-    author = AUTHOR,
-    author_email = AUTHOR_EMAIL,
-    url = URL,
-    license = LICENSE,
-    packages = PACKAGES,
+    keywords=KEYWORDS,
+    author=AUTHOR,
+    author_email=AUTHOR_EMAIL,
+    url=URL,
+    license=LICENSE,
+    packages=PACKAGES,
     include_package_data=True,
     zip_safe=True,
 )
