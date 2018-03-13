@@ -58,11 +58,15 @@ def escape(datas):
     for data in datas:
         if not isinstance(data, bytes):
             data = str(data).encode("utf-8")
-        data = data.replace(b"<->", b"1qaxsw234fds3gbhfvhtedfvfg").replace(b"#-*-#", b"jp0n988n80434nlj3pdf0909mn")
+        data = data.replace(
+            b"<->", b"1qaxsw234fds3gbhfvhtedfvfg").replace(
+            b"#-*-#", b"jp0n988n80434nlj3pdf0909mn")
         d.append(data)
     return tuple(d)
 
 
 def unescape(data):
-    return data.replace(b"1qaxsw234fds3gbhfvhtedfvfg", b"<->").replace(b"jp0n988n80434nlj3pdf0909mn", b"#-*-#")
+    return data.replace(
+        b"1qaxsw234fds3gbhfvhtedfvfg", b"<->").replace(
+        b"jp0n988n80434nlj3pdf0909mn", b"#-*-#")
 

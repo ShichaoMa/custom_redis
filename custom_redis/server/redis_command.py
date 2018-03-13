@@ -13,8 +13,10 @@ class RedisCommand(object, metaclass=RedisCommandMeta):
     datas = None
 
     def keys(self, k, v, instance):
-        return b"%s#-*-#%s#-*-#%s\r\n\r\n" % (b"200", b"success",
-                                             pickle.dumps([x for x in self.datas.keys() if fnmatch.fnmatch(x, k)]))
+        return b"%s#-*-#%s#-*-#%s\r\n\r\n" % (
+            b"200", b"success",
+            pickle.dumps([x for x in self.datas.keys()
+                          if fnmatch.fnmatch(x, k)]))
 
     def expire(self, k, v, instance):
         if k in self.datas:
@@ -24,7 +26,8 @@ class RedisCommand(object, metaclass=RedisCommandMeta):
 
     def type(self, k, v, instance):
         data = self.datas[k]
-        return ("200#-*-#success#-*-#%s\r\n\r\n"%data.__class__.__name__[:-5].lower()).encode("utf-8")
+        return ("200#-*-#success#-*-#%s\r\n\r\n" %
+                data.__class__.__name__[:-5].lower()).encode("utf-8")
 
     def ttl(self, k, v, instance):
         expire = self.expire_keys.get(k)

@@ -53,16 +53,19 @@ class Redis(object):
             sub = ""
             args = properties.get("args")
             default_args = SafeList(deepcopy(properties.get("default", [])))
-            error_msg = "%%s haven't got enough arguments, need %s argument%s named %%s. "%(
+            error_msg = "%%s haven't got enough arguments, " \
+                        "need %s argument%s named %%s. " % (
                 len(args), "" if len(args) == 1 else "s")
             for arg in reversed(args):
-                sub = "%s%s"%(arg, (
-                    ": default %s, "%default_args.pop(-1) if default_args else ", ")) + sub
+                sub = "%s%s" % (arg, (": default %s, " % default_args.pop(-1)
+                                      if default_args else ", ")) + sub
             raise RedisArgumentError(error_msg%(func_name, sub[:-2]))
         if args:
             arguments += args
         return self._parse_result(FORMAT % (
-            func_name.encode("utf-8"), b"%s<->%s"%escape(properties.get("send", default_send)(*arguments))), properties)
+            func_name.encode("utf-8"),
+            b"%s<->%s" % escape(
+                properties.get("send", default_send)(*arguments))), properties)
 
     def _parse_result(self, buf, properties={}):
         count = 0
@@ -87,29 +90,37 @@ class Redis(object):
         code, info, data = a
         data = data[:-4]
         if code == b"200":
-            return handle_safely(properties.get("recv", default_recv))(unescape(data))
+            return handle_safely(
+                properties.get("recv", default_recv))(unescape(data))
         elif code == b"502":
             return properties.get("result", data)
         else:
             raise RedisError(b"%s:%s, data: %s"%(code, info, data))
 
     def keys(self, pattern="*", *args):
-        return self._parse_result(FORMAT%(b"keys", b"%s<->%s"%escape((pattern, b""))), {"recv":pickle.loads})
+        return self._parse_result(
+            FORMAT % (b"keys", b"%s<->%s"%escape((pattern, b""))),
+            {"recv":pickle.loads})
 
     def type(self, key, *args):
-        return self._parse_result(FORMAT % (b"type", b"%s<->%s" % escape((key, b""))))
+        return self._parse_result(
+            FORMAT % (b"type", b"%s<->%s" % escape((key, b""))))
 
     def delete(self, key, *args):
-        return self._parse_result(FORMAT % (b"delete", b"%s<->%s" % escape((key, b""))))
+        return self._parse_result(
+            FORMAT % (b"delete", b"%s<->%s" % escape((key, b""))))
 
     def expire(self, key, seconds, *args):
-        return self._parse_result(FORMAT % (b"expire", b"%s<->%s" % escape((key, str(seconds)))))
+        return self._parse_result(
+            FORMAT % (b"expire", b"%s<->%s" % escape((key, str(seconds)))))
 
     def ttl(self, key, *args):
-        return self._parse_result(FORMAT % (b"ttl", b"%s<->%s" % escape((key, ""))), {"recv":int})
+        return self._parse_result(
+            FORMAT % (b"ttl", b"%s<->%s" % escape((key, ""))), {"recv":int})
 
     def flushall(self, *args):
-        return self._parse_result(FORMAT % (b"flushall", b"<->"))
+        return self._parse_result(
+            FORMAT % (b"flushall", b"<->"))
 
     def close(self):
         if self.redis_conn:
@@ -143,7 +154,7 @@ def start_client():
         result = getattr(r, args.cmd)(*(keys + mapping))
     else:
         result = getattr(r, args.cmd)(*(keys + args.args))
-    if result != None:
+    if result is not None:
         print(result)
 
     r.close()

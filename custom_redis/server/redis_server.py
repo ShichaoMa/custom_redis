@@ -78,7 +78,8 @@ class RedisServer(object):
         logger.setLevel(getattr(logging, self.args.get("log_level", "DEBUG")))
         if self.args.get("log_file"):
             handler = handlers.RotatingFileHandler(
-                os.path.join(self.args.get("log_dir", "."), "%s.log" % self.name),
+                os.path.join(self.args.get("log_dir", "."),
+                             "%s.log" % self.name),
                 maxBytes=10240000, backupCount=5)
         else:
             handler = logging.StreamHandler(sys.stdout)
@@ -92,7 +93,8 @@ class RedisServer(object):
 
     def setup(self):
         if os.path.exists("redis_data.db"):
-            lines = open("redis_data.db", "rb").read().split(b"fdfsafafdsfsfdsfafdff")
+            lines = open(
+                "redis_data.db", "rb").read().split(b"fdfsafafdsfsfdsfafdff")
             if lines:
                 self.logger.info("load datas...")
                 for line in lines:
@@ -108,8 +110,8 @@ class RedisServer(object):
                     cls = list(self.data_type.values())[0].loads(val)
                 else:
                     cls = reduce(lambda x, y:
-                                 (x.loads(val) if hasattr(x, "loads") else None) or
-                                 y.loads(val),
+                                 (x.loads(val) if hasattr(x, "loads") else None)
+                                 or y.loads(val),
                                  self.data_type.values())
                 if cls:
                     self.datas[key] = cls(self.logger, val)
@@ -161,7 +163,8 @@ class RedisServer(object):
         # 若执行过程中出现异常r_lst中的server也被清掉，程序退出
         try:
             while self.alive and self.r_lst:
-                readable, writable, _ = select.select(self.r_lst.keys(), self.w_lst.keys(), [], 0.1)
+                readable, writable, _ = select.select(
+                    self.r_lst.keys(), self.w_lst.keys(), [], 0.1)
                 for r in readable:
                     self.recv(r, self.w_lst, self.r_lst, server)
                 for w in writable:
@@ -184,7 +187,8 @@ class RedisServer(object):
                 self.logger.info("persist datas...")
                 for key, val in self.datas.items():
                     stream.write(key)
-                    stream.write(b'1qazxsw23edc%d' % self.expire_keys.get(key, -1))
+                    stream.write(
+                        b'1qazxsw23edc%d' % self.expire_keys.get(key, -1))
                     stream.write(b'1qazxsw23edc')
                     val.persist(stream)
 
@@ -192,7 +196,8 @@ class RedisServer(object):
     def send(self, w, w_lst, r_lst, server):
         # item会被保存在w_lst相应的val中
         item = w_lst[w]
-        self.logger.debug("start to send item %s to %s:%s" % (item, r_lst[w][0], r_lst[w][1]))
+        self.logger.debug(
+            "start to send item %s to %s:%s" % (item, r_lst[w][0], r_lst[w][1]))
         w.send(item)
 
     @stream_wrapper
@@ -204,7 +209,8 @@ class RedisServer(object):
             client.setblocking(0)
             r_lst[client] = adr
         else:
-            self.logger.debug("start to recv data from %s:%s" % (r_lst[r][0], r_lst[r][1]))
+            self.logger.debug(
+                "start to recv data from %s:%s" % (r_lst[r][0], r_lst[r][1]))
             received = self._recv(r)
             if received:
                 cmd, data, keep = received.split(b"#-*-#")
@@ -212,10 +218,12 @@ class RedisServer(object):
                 key, val = data.split(b"<->")
                 # 根据指令生成item返回结果
                 try:
-                    method = getattr(self.datas.get(key, None), cmd, None) or getattr(self, cmd)
+                    method = getattr(self.datas.get(key, None), cmd, None) \
+                             or getattr(self, cmd)
                     # 数据类型的方法
-                    if method and key in self.datas and method.__self__ != self and \
-                                    self.datas[key].__class__ != method.__self__.__class__:
+                    if method and key in self.datas and method.__self__ != self \
+                            and self.datas[key].__class__ != \
+                                    method.__self__.__class__:
                         # 类型不符合
                         item = b"503#-*-#Type Not Format#-*-#\r\n\r\n"
                     else:
@@ -249,10 +257,16 @@ class RedisServer(object):
         parser = ArgumentParser()
         parser.add_argument("--host", help="host", default="127.0.0.1")
         parser.add_argument("-p", "--port", type=int, help="port", default=6379)
-        parser.add_argument("-lf", "--log-file", action="store_true", help="log to file, else log to stdout. " )
+        parser.add_argument(
+            "-lf", "--log-file", action="store_true",
+            help="log to file, else log to stdout. ")
         parser.add_argument("-ld", "--log-dir", default=".")
-        parser.add_argument("-ll", "--log-level", default="DEBUG", choices=["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"])
-        parser.add_argument("--log-format", default="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
+        parser.add_argument(
+            "-ll", "--log-level", default="DEBUG",
+            choices=["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"])
+        parser.add_argument(
+            "--log-format",
+            default="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
         return vars(parser.parse_args())
 
 

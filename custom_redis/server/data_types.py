@@ -104,7 +104,8 @@ class HashStore(DataStore):
 
     def hmget(self, k, v, instance):
         ks = pickle.loads(v)
-        return pickle.dumps(dict(filter(lambda x: x[0] in ks, self.data.items())))
+        return pickle.dumps(
+            dict(filter(lambda x: x[0] in ks, self.data.items())))
 
     def hgetall(self, k, v, instance):
         return pickle.dumps(self.data)

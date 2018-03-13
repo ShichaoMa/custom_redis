@@ -17,7 +17,8 @@ class Meta(type):
     def __new__(mcs, name, bases, properties):
         for k, v in properties.items():
             if isinstance(v, types.FunctionType):
-                # 由于这个方法会被继承，通过提供不同的wrapper函数来做不同的包装， RedisMeta没有提供，所以不包装
+                # 由于这个方法会被继承，通过提供不同的wrapper函数来做不同的包装，
+                # RedisMeta没有提供，所以不包装
                 properties[k] = mcs.wrapper(v) if mcs.wrapper else v
         return super().__new__(mcs, name, bases, properties)
 
@@ -42,7 +43,8 @@ class StoreMeta(Meta):
             except Exception as e:
                 self.logger.error(traceback.format_exc())
                 return format_response(
-                    b"503", "{}:{}".format(e.__class__.__name__.lower(), e).encode(), v)
+                    b"503", "{}:{}".format(
+                        e.__class__.__name__.lower(), e).encode(), v)
         return inner
 
 
@@ -58,7 +60,8 @@ class RedisCommandMeta(Meta):
             except Exception as e:
                 self.logger.error(traceback.format_exc())
                 return format_response(
-                    b"503", "{}:{}".format(e.__class__.__name__.lower(), e).encode(), v)
+                    b"503", "{}:{}".format(
+                        e.__class__.__name__.lower(), e).encode(), v)
         return inner
 
 

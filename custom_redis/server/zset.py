@@ -116,7 +116,7 @@ class SortedSet:
             end = end + card
         if start<0:
             start = start + card
-        nodes = self.slist.orderlist[max(card-end-1, 0): max(card-start, 0)][::-1]
+        nodes = self.slist.orderlist[max(card-end-1, 0):max(card-start, 0)][::-1]
         if not nodes:
             return []
         if withscores:
