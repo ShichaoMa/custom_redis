@@ -44,9 +44,9 @@ def install_requires(dev=False):
         return []
 
 try:
-    LONG_DESCRIPTION = open("README.rst").read()
+    LONG_DESCRIPTION = open("README.md").read()
 except UnicodeDecodeError:
-    LONG_DESCRIPTION = open("README.rst", encoding="utf-8").read()
+    LONG_DESCRIPTION = open("README.md", encoding="utf-8").read()
 
 
 @contextmanager
@@ -77,6 +77,7 @@ with cfg_manage(__file__.replace(".py", ".cfg.tpl")):
             "Intended Audience :: Developers",
             "Operating System :: Unix",
         ],
+        long_description_content_type="text/markdown",
         keywords="custom redis",
         author="cn",
         author_email="308299269@foxmail.com",
