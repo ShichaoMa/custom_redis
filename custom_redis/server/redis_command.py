@@ -45,5 +45,5 @@ class RedisCommand(object, metaclass=RedisCommandMeta):
         return b"200#-*-#success#-*-#\r\n\r\n"
 
     def flushall(self, k, v, instance):
-        self.datas = {}
+        self.datas.clear()
         return b"200#-*-#success#-*-#\r\n\r\n"
