@@ -43,7 +43,7 @@ class ListStore(DataStore):
 
 class StrStore(DataStore):
 
-    data_type = str
+    data_type = bytes
 
     def add(self, k, v, instance):
         self.data += v

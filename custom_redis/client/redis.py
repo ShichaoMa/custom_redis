@@ -116,7 +116,7 @@ class Redis(object):
 
     def ttl(self, key, *args):
         return self._parse_result(
-            FORMAT % (b"ttl", b"%s<->%s" % escape((key, ""))), {"recv":int})
+            FORMAT % (b"ttl", b"%s<->%s" % escape((key, ""))), {"recv": int})
 
     def flushall(self, *args):
         return self._parse_result(
@@ -136,7 +136,6 @@ def parse_args():
     parser.add_argument("-p", "--port", dest="port", type=int, default=6379)
     parser.add_argument("-c", "--cmd", dest="cmd", required=True)
     parser.add_argument("args", nargs="*", default=[])
-    parser.add_argument("-k", "--key", dest="key")
     parser.add_argument("-j", "--json", dest="json", action="store_true")
     parser.add_argument("--keep-alive", dest="keep_alive", action="store_true")
     return parser.parse_args()
@@ -145,16 +144,17 @@ def parse_args():
 def start_client():
     args = parse_args()
     r = Redis(args.host, args.port)
-    keys = [args.key] if args.key else []
 
     if not args.keep_alive:
         FORMAT.replace(b"1", b"0")
     if args.json:
         mapping = [json.loads(args.args[0])]
-        result = getattr(r, args.cmd)(*(keys + mapping))
+        result = getattr(r, args.cmd)(*mapping)
     else:
-        result = getattr(r, args.cmd)(*(keys + args.args))
+        result = getattr(r, args.cmd)(*args.args)
     if result is not None:
+        if isinstance(result, bytes):
+            result = result.decode(errors="replace")
         print(result)
 
     r.close()

@@ -221,7 +221,7 @@ class RedisServer(object):
                     method = getattr(self.datas.get(key, None), cmd, None) \
                              or getattr(self, cmd)
                     # 数据类型的方法
-                    if method and key in self.datas and method.__self__ != self \
+                    if method and key in self.datas and method.__self__ != self.redis_command \
                             and self.datas[key].__class__ != \
                                     method.__self__.__class__:
                         # 类型不符合

@@ -37,7 +37,7 @@ CMD_DICT = {
         "default": [1]
     },
     "zadd": {
-        "args": ["name", "value", "key"],
+        "args": ["name", "value", "score"],
         "send": lambda *args: (args[0], safe_dumps(dict([reversed(args[1:])]))),
     },
     "zpop": {
